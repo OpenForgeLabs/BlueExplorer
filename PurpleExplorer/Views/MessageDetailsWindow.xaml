@@ -1,0 +1,196 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="780" d:DesignHeight="630"
+        x:Class="PurpleExplorer.Views.MessageDetailsWindow"
+        x:Name="messageDetailsWindow"
+        xmlns:vm="clr-namespace:PurpleExplorer.ViewModels;assembly=PurpleExplorer"
+        xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+        Title="Message Details" Icon="/Assets/avalonia-logo.ico"
+        Width="680" Height="630"
+        Focusable="True"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseWindowCommand}"
+                    CommandParameter="{Binding #messageDetailsWindow}" />
+        <KeyBinding Gesture="Cmd+W" Command="{Binding CloseWindowCommand}"
+                    CommandParameter="{Binding #messageDetailsWindow}" />
+        <KeyBinding Gesture="Ctrl+F4" Command="{Binding CloseWindowCommand}"
+                    CommandParameter="{Binding #messageDetailsWindow}" />
+        <KeyBinding Gesture="Escape" Command="{Binding CloseWindowCommand}"
+                    CommandParameter="{Binding #messageDetailsWindow}" />
+    </Window.KeyBindings>
+
+    <Design.DataContext>
+        <vm:MessageDetailsWindowViewModel />
+    </Design.DataContext>
+    <Window.Styles>
+        <Style Selector="TextBox#ContentTextBlock">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="TextBlock.left">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Width" Value="150" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style Selector="TextBlock.right, SelectableTextBlock.right">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+    </Window.Styles>
+
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Height="30" LastChildFill="False">
+            <Button Name="MinusButton" Classes="topButton" IsEnabled="{Binding !!CurrentMessage}"
+                    Command="{Binding DeleteMessageCommand}"
+                    CommandParameter="{Binding #messageDetailsWindow}">
+                <StackPanel Orientation="Horizontal">
+                    <!-- <DrawingPresenter Drawing="{DynamicResource Material.Delete}" /> -->
+                    <TextBlock VerticalAlignment="Center">Delete message</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding DeadLetterMessageCommand}"
+                    IsVisible="{Binding !CurrentMessage.IsDlq}"
+                    Classes="topButton">
+                <StackPanel Orientation="Horizontal">
+                    <!-- <DrawingPresenter Drawing="{DynamicResource Material.EmailSend}" /> -->
+                    <TextBlock VerticalAlignment="Center">Send to dead-letter</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Name="ResendButton" Command="{Binding ResubmitMessageCommand}"
+                    IsVisible="{Binding !!CurrentMessage.IsDlq}"
+                    Classes="topButton">
+                <StackPanel Orientation="Horizontal">
+                    <!-- <DrawingPresenter Drawing="{DynamicResource Material.EmailSend}" /> -->
+                    <TextBlock VerticalAlignment="Center">Resubmit back to topic</TextBlock>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding CloseWindowCommand}"
+                    CommandParameter="{Binding #messageDetailsWindow}"
+                    HotKey="Ctrl+W"
+                    DockPanel.Dock="Right"
+                    Classes="topButton">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <i:Icon Value="fa-rectangle-xmark" />
+                    <TextBlock VerticalAlignment="Center">Close</TextBlock>
+                </StackPanel>
+            </Button>
+        </DockPanel>
+
+        <ScrollViewer>
+            <StackPanel Orientation="Vertical">
+                <Border BorderBrush="LightGray" BorderThickness="1,1,1,0" Margin="0,5">
+                    <Grid MinHeight="600" VerticalAlignment="Top" ShowGridLines="False">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" MinWidth="50" />
+                            <ColumnDefinition Width="4" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Grid Splitter -->
+                        <GridSplitter Grid.Column="1" Grid.Row="0" Grid.RowSpan="10"
+                                      Width="4" HorizontalAlignment="Stretch" Background="Transparent" />
+
+                        <!-- Grid Lines -->
+                        <Border Grid.Row="0" Grid.RowSpan="10" Grid.Column="0" BorderBrush="LightGray"
+                                BorderThickness="0,0,1,0" HorizontalAlignment="Right" />
+                        <Border Grid.Row="0" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="1" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="2" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="3" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="4" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="5" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="6" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="7" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="8" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" />
+                        <Border Grid.Row="9" Grid.ColumnSpan="3" BorderBrush="LightGray" BorderThickness="0,0,0,1"
+                                VerticalAlignment="Bottom" IsVisible="{Binding CurrentMessage.IsDlq}" />
+
+                        <TextBlock Text="MessageId" Classes="left" Grid.Row="0" Grid.Column="0" />
+                        <SelectableTextBlock Name="MessageId" Grid.Row="0" Grid.Column="2"
+                                             Text="{Binding CurrentMessage.MessageId}" Classes="right" />
+
+                        <TextBlock Text="Content Type" Classes="left" Grid.Row="1" Grid.Column="0" />
+                        <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding CurrentMessage.ContentType}"
+                                   Classes="right" />
+
+                        <TextBlock Text="Content" Grid.Row="2" Classes="left" Grid.Column="0" />
+                        <TextBox Grid.Row="2" Grid.Column="2" IsReadOnly="True" Name="ContentTextBlock"
+                                 TextWrapping="Wrap" AcceptsReturn="True" MinHeight="200"
+                                 Text="{Binding CurrentMessage.Content}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Classes="left" Text="Sequence Number" />
+                        <SelectableTextBlock Grid.Row="3" Grid.Column="2" Classes="right"
+                                             Text="{Binding CurrentMessage.SequenceNumber}" />
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Classes="left" Text="Size" />
+                        <TextBlock Grid.Row="4" Grid.Column="2" Classes="right" Text="{Binding CurrentMessage.Size}" />
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Classes="left" Text="Delivery Count" />
+                        <TextBlock Grid.Row="5" Grid.Column="2" Classes="right"
+                                   Text="{Binding CurrentMessage.DeliveryCount}" />
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Classes="left" Text="Correlation Id" />
+                        <SelectableTextBlock Grid.Row="6" Grid.Column="2" Classes="right"
+                                             Text="{Binding CurrentMessage.CorrelationId}" />
+
+                        <TextBlock Grid.Row="7" Grid.Column="0" Classes="left" Text="Time To Live" />
+                        <TextBlock Grid.Row="7" Grid.Column="2" Classes="right"
+                                   Text="{Binding CurrentMessage.TimeToLive}" />
+
+                        <TextBlock Grid.Row="8" Grid.Column="0" Classes="left" Text="Enqueued Time (UTC)" />
+                        <SelectableTextBlock Grid.Row="8" Grid.Column="2" Classes="right"
+                                             Text="{Binding CurrentMessage.EnqueueTimeUtc}" />
+
+                        <TextBlock Grid.Row="9" Grid.Column="0" Classes="left" Text="DLQ Reason"
+                                   IsVisible="{Binding CurrentMessage.IsDlq}"
+                                   VerticalAlignment="Top" />
+                        <SelectableTextBlock Grid.Row="9" Grid.Column="2" Classes="right"
+                                             IsVisible="{Binding CurrentMessage.IsDlq}"
+                                             Text="{Binding CurrentMessage.DeadLetterReason}"
+                                             TextWrapping="Wrap" Height="NaN" MinHeight="20" />
+                    </Grid>
+                </Border>
+                <TextBlock Text="Application Properties" FontWeight="Bold" Margin="5,10,0,5" />
+                <DataGrid ItemsSource="{Binding CurrentMessage.ApplicationProperties}" IsReadOnly="True"
+                          CanUserResizeColumns="True"
+                          GridLinesVisibility="All"
+                          HorizontalAlignment="Stretch">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Key" Binding="{Binding Key}" Width="150" />
+                        <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

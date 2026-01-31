@@ -1,0 +1,34 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PurpleExplorer"
+             xmlns:vm="clr-namespace:PurpleExplorer.ViewModels;assembly=PurpleExplorer"
+             x:Class="PurpleExplorer.App"
+             Name="Purple Explorer">
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        <StyleInclude Source="avares://PurpleExplorer/Styles/CommonStyles.xaml" />
+    </Application.Styles>
+
+    <!-- <Application.Resources> -->
+    <!--     <ResourceDictionary> -->
+    <!--         <ResourceDictionary.MergedDictionaries> -->
+    <!--             <MergeResourceInclude Source="avares://Projektanker.Icons.Avalonia/Icon.axaml" /> -->
+    <!--         </ResourceDictionary.MergedDictionaries> -->
+    <!--     </ResourceDictionary> -->
+    <!-- </Application.Resources> -->
+
+    <Design.DataContext>
+        <vm:AppWindowViewModel />
+    </Design.DataContext>
+
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="About Purple Explorer" Command="{Binding Path=AboutPageCommand}" />
+        </NativeMenu>
+    </NativeMenu.Menu>
+</Application>

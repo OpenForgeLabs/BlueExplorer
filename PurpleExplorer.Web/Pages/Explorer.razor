@@ -1,0 +1,1499 @@
+﻿
+@page "/"
+@inject ServiceBusApiClient Api
+@inject IJSRuntime Js
+
+<PageTitle>PurpleExplorer</PageTitle>
+
+<div class="shell">
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-icon">
+                <span class="material-symbols-outlined">hub</span>
+            </div>
+            <div>
+                <div class="brand-title">PurpleExplorer</div>
+                <div class="brand-subtitle">Azure Service Bus Console</div>
+            </div>
+        </div>
+        <nav class="top-nav">
+            <button class="nav-link @(CurrentView == UiView.Connections ? "active" : string.Empty)" @onclick="() => SetView(UiView.Connections)">
+                Connections
+            </button>
+            <button class="nav-link @(CurrentView == UiView.Resources ? "active" : string.Empty)" @onclick="() => SetView(UiView.Resources)" disabled="@(!HasConnection)">
+                Resources
+            </button>
+            <button class="nav-link @(CurrentView == UiView.Messages ? "active" : string.Empty)" @onclick="() => SetView(UiView.Messages)" disabled="@(!HasSelection)">
+                Messages
+            </button>
+            <button class="nav-link @(CurrentView == UiView.Settings ? "active" : string.Empty)" @onclick="() => SetView(UiView.Settings)">
+                Settings
+            </button>
+        </nav>
+        <div class="top-actions">
+            <button class="btn primary" @onclick="RefreshCurrent" disabled="@IsBusy">Sync</button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="side">
+            <div class="side-section">
+                <div class="side-label">Namespace</div>
+                <div class="side-namespace">
+                    <div>
+                        <div class="namespace-name">@SelectedConnection?.Name ?? "No connection"</div>
+                        <div class="namespace-tier">Standard Tier</div>
+                    </div>
+                    <span class="material-symbols-outlined">unfold_more</span>
+                </div>
+            </div>
+            <div class="side-nav">
+                <button class="side-link @(CurrentView == UiView.Connections ? "active" : string.Empty)" @onclick="() => SetView(UiView.Connections)">
+                    <span class="material-symbols-outlined">cable</span>
+                    Connections
+                </button>
+                <button class="side-link @(CurrentView == UiView.Resources ? "active" : string.Empty)" @onclick="() => SetView(UiView.Resources)" disabled="@(!HasConnection)">
+                    <span class="material-symbols-outlined">list</span>
+                    Queues & Topics
+                </button>
+                <button class="side-link @(CurrentView == UiView.Messages ? "active" : string.Empty)" @onclick="() => SetView(UiView.Messages)" disabled="@(!HasSelection)">
+                    <span class="material-symbols-outlined">mail</span>
+                    Messages
+                </button>
+                <div class="side-divider"></div>
+                <button class="side-link @(CurrentView == UiView.Settings ? "active" : string.Empty)" @onclick="() => SetView(UiView.Settings)">
+                    <span class="material-symbols-outlined">settings</span>
+                    Settings
+                </button>
+            </div>
+            <div class="side-profile">
+                <div class="avatar">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </div>
+                <div>
+                    <div class="profile-email">admin@company.com</div>
+                    <div class="profile-tier">Enterprise</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            @if (CurrentView == UiView.Connections)
+            {
+                <section class="page-header">
+                    <div>
+                        <h1>Namespace Connections</h1>
+                        <p>Manage and monitor your Azure Service Bus namespace configurations.</p>
+                    </div>
+                    <div class="page-actions">
+                        <span class="muted-note">Use the “New Connection” tile below.</span>
+                    </div>
+                </section>
+
+                <section class="card-grid">
+                    @foreach (ConnectionCard card in FilteredConnections())
+                    {
+                        <div class="card">
+                            <div class="card-top">
+                                <div class="card-icon">
+                                    <span class="material-symbols-outlined">cloud_queue</span>
+                                </div>
+                                <span class="badge @(card.IsOnline ? "online" : "offline")">
+                                    <span class="dot"></span>@(card.IsOnline ? "Online" : "Offline")
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title">@card.Name</div>
+                                <div class="card-meta">
+                                    <span><span class="material-symbols-outlined">reorder</span>@card.QueueCount Queues</span>
+                                    <span><span class="material-symbols-outlined">lan</span>@card.TopicCount Topics</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn primary" @onclick="() => Connect(card.Name)" disabled="@IsBusy">Connect</button>
+                                <button class="btn ghost" @onclick="() => Manage(card.Name)" disabled="@IsBusy">Manage</button>
+                            </div>
+                        </div>
+                    }
+                    <div class="card card-empty clickable" @onclick="OpenCreateConnection">
+                        <div class="card-empty-icon">
+                            <span class="material-symbols-outlined">add</span>
+                        </div>
+                        <div class="card-empty-text">New Connection</div>
+                    </div>
+                </section>
+            }
+            @if (CurrentView == UiView.Resources)
+            {
+                <section class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <span>Namespaces</span>
+                            <span>/</span>
+                            <strong>@SelectedConnection?.Name</strong>
+                        </div>
+                        <h1>Resource Explorer</h1>
+                        <p>Manage and monitor all messaging entities in real-time.</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn ghost" @onclick="RefreshResources" disabled="@IsBusy">
+                            <span class="material-symbols-outlined">refresh</span>Sync
+                        </button>
+                        <button class="btn primary" @onclick="OpenCreateResource" disabled="@IsBusy">Create Resource</button>
+                    </div>
+                </section>
+
+                <section class="stats">
+                    <div class="stat">
+                        <div class="stat-head">
+                            <span>Total Queues</span>
+                            <span class="material-symbols-outlined">view_agenda</span>
+                        </div>
+                        <div class="stat-value">@Queues.Count</div>
+                        <div class="stat-meta ok">Live</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-head">
+                            <span>Total Topics</span>
+                            <span class="material-symbols-outlined">account_tree</span>
+                        </div>
+                        <div class="stat-value">@Topics.Count</div>
+                        <div class="stat-meta muted">Steady</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-head">
+                            <span>Dead-letter Total</span>
+                            <span class="material-symbols-outlined warn">error_outline</span>
+                        </div>
+                        <div class="stat-value">@TotalDlqCount</div>
+                        <div class="stat-meta warn">Watch</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-head">
+                            <span>Active Status</span>
+                            <span class="material-symbols-outlined ok">check_circle</span>
+                        </div>
+                        <div class="stat-value">98.2%</div>
+                        <div class="stat-meta ok">Healthy</div>
+                    </div>
+                </section>
+
+                @if (ResourceFilterType == ResourceTypeFilter.Subscriptions)
+                {
+                    <div class="sub-filter">
+                        <label>
+                            <span>Topic</span>
+                            <select @bind="SelectedTopicForSubscriptions" @bind:after="OnSubscriptionTopicChanged">
+                                <option value="">Select topic...</option>
+                                @foreach (TopicInfo topic in Topics)
+                                {
+                                    <option value="@topic.Name">@topic.Name</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+                }
+
+                <section class="table-panel">
+                    <div class="table-toolbar">
+                        <div class="pill-group">
+                            <button class="pill @(ResourceFilterType == ResourceTypeFilter.Queues ? "active" : string.Empty)"
+                                    @onclick="() => SetResourceFilter(ResourceTypeFilter.Queues)">
+                                Queues
+                            </button>
+                            <button class="pill @(ResourceFilterType == ResourceTypeFilter.Topics ? "active" : string.Empty)"
+                                    @onclick="() => SetResourceFilter(ResourceTypeFilter.Topics)">
+                                Topics
+                            </button>
+                            <button class="pill @(ResourceFilterType == ResourceTypeFilter.Subscriptions ? "active" : string.Empty)"
+                                    @onclick="() => SetResourceFilter(ResourceTypeFilter.Subscriptions)">
+                                Subscriptions
+                            </button>
+                        </div>
+                        <label class="search light">
+                            <span class="material-symbols-outlined">search</span>
+                            <input placeholder="Filter by name or type..." @bind="ResourceFilter" />
+                        </label>
+                        <div class="pager">
+                            <select @bind="ResourcePageSize" @bind:after="OnResourcePageSizeChanged">
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <button class="btn ghost" @onclick="PrevResourcePage" disabled="@(!CanPrevResource)">Prev</button>
+                            <button class="btn ghost" @onclick="NextResourcePage" disabled="@(!CanNextResource)">Next</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th class="right">Active Count</th>
+                                    <th class="right">Dead-letter</th>
+                                    <th class="center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (ResourceRow row in FilteredResources())
+                                {
+                                    <tr @onclick="() => OpenMessages(row)">
+                                        <td>
+                                            <div class="cell-title">
+                                                <span class="material-symbols-outlined @(row.Type == "Queue" ? "queue" : "topic")">
+                                                    @(row.Type == "Queue" ? "view_agenda" : "account_tree")
+                                                </span>
+                                                <div>
+                                                    <div>@row.Name</div>
+                                                    <small>@row.Id</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="chip">@row.Type</span></td>
+                                        <td>
+                                            <span class="status-dot @(row.IsActive ? "ok" : "muted")"></span>
+                                            @(row.IsActive ? "Active" : "Disabled")
+                                        </td>
+                                        <td class="right mono">@row.ActiveCount</td>
+                                        <td class="right mono @(row.DlqCount > 0 ? "warn" : "muted")">@row.DlqCount</td>
+                                        <td class="center">
+                                            <button class="icon-btn" @onclick:stopPropagation="true" @onclick="() => DeleteResource(row)">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            }
+            @if (CurrentView == UiView.Messages)
+            {
+                <section class="page-header">
+                    <div>
+                        <div class="breadcrumbs">
+                            <span>Resources</span>
+                            <span>/</span>
+                            <strong>@SelectionLabel</strong>
+                        </div>
+                        <h1>Messages</h1>
+                        <p>Inspect and manage the live and dead-letter messages.</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn ghost" @onclick="RefreshMessages" disabled="@IsBusy">
+                            <span class="material-symbols-outlined">refresh</span>Sync
+                        </button>
+                        <button class="btn @(IsDlqView ? "ghost" : "primary")" @onclick="() => SetDlq(false)" disabled="@IsBusy">Active</button>
+                        <button class="btn @(IsDlqView ? "primary" : "ghost")" @onclick="() => SetDlq(true)" disabled="@IsBusy">DLQ</button>
+                    </div>
+                </section>
+
+                <section class="table-panel">
+                    <div class="table-toolbar">
+                        <label class="search light">
+                            <span class="material-symbols-outlined">search</span>
+                            <input placeholder="Filter messages..." @bind="MessageFilter" />
+                        </label>
+                        <div class="action-cluster">
+                            <select @bind="MessagePageSize" @bind:after="OnMessagePageSizeChanged">
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                            <button class="btn ghost" @onclick="PrevMessagePage" disabled="@(!CanPrevMessage)">Prev</button>
+                            <button class="btn ghost" @onclick="NextMessagePage" disabled="@(!CanNextMessage)">Next</button>
+                            <button class="btn ghost" @onclick="PurgeMessages" disabled="@IsBusy">Purge</button>
+                            <button class="btn ghost" @onclick="TransferDlq" disabled="@IsBusy || !IsDlqView">Transfer DLQ</button>
+                            <button class="btn primary" @onclick="SendMessage" disabled="@IsBusy || !CanSend">Send</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Message Id</th>
+                                    <th>Label</th>
+                                    <th>Enqueued</th>
+                                    <th class="right">Delivery</th>
+                                    <th class="right">Size</th>
+                                    <th class="center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (MessageDto message in FilteredMessages())
+                                {
+                                    <tr class="@(SelectedMessage?.MessageId == message.MessageId ? "selected" : string.Empty)"
+                                        @onclick="() => SelectMessage(message)">
+                                        <td class="mono">@message.MessageId</td>
+                                        <td>@message.Label</td>
+                                        <td>@message.EnqueueTimeUtc.LocalDateTime</td>
+                                        <td class="right mono">@message.DeliveryCount</td>
+                                        <td class="right mono">@message.Size</td>
+                                        <td class="center">
+                                            <button class="icon-btn" @onclick:stopPropagation="true" @onclick="DeleteMessage">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="details">
+                    <div class="detail-head">
+                        <div>
+                            <div class="detail-title">Message Details</div>
+                            <div class="detail-sub">@SelectedMessage?.MessageId ?? "Select a message"</div>
+                        </div>
+                        <div class="detail-actions">
+                            <button class="btn ghost" @onclick="DeadletterMessage" disabled="@IsBusy || IsDlqView || SelectedMessage == null">Dead-letter</button>
+                            <button class="btn primary" @onclick="ResubmitMessage" disabled="@IsBusy || !IsDlqView || SelectedMessage == null">Resubmit</button>
+                        </div>
+                    </div>
+                    <div class="detail-body">
+                        <pre>@SelectedMessage?.Content</pre>
+                    </div>
+                </section>
+
+            }
+
+            @if (CurrentView == UiView.Settings)
+            {
+                <section class="page-header">
+                    <div>
+                        <h1>Settings</h1>
+                        <p>Customize paging defaults for this session.</p>
+                    </div>
+                </section>
+
+                <section class="panel settings-panel">
+                    <div class="settings-row">
+                        <label class="field">
+                            <span>Resources page size</span>
+                            <select @bind="ResourcePageSize">
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                        </label>
+                        <label class="field">
+                            <span>Messages page size</span>
+                            <select @bind="MessagePageSize">
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                                <option value="200">200</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="btn primary" @onclick="ApplySettings">Apply</button>
+                    </div>
+                </section>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+            {
+                <div class="status error">@ErrorMessage</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(StatusMessage))
+            {
+                <div class="status">@StatusMessage</div>
+            }
+        </main>
+    </div>
+</div>
+
+@if (IsResourceModalOpen)
+{
+    <div class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Create Resource</div>
+                    <div class="modal-subtitle">Queues, topics, or subscriptions</div>
+                </div>
+                <button class="icon-btn" @onclick="CloseResourceModal">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="field">
+                    <span>Type</span>
+                    <select @bind="ResourceFormType" @bind:after="OnResourceTypeChanged">
+                        <option value="Queue">Queue</option>
+                        <option value="Topic">Topic</option>
+                        <option value="Subscription">Subscription</option>
+                    </select>
+                </label>
+                @if (ResourceFormType == "Subscription")
+                {
+                    <label class="field">
+                        <span>Topic</span>
+                        <select @bind="ResourceFormTopic">
+                            <option value="">Select topic...</option>
+                            @foreach (TopicInfo topic in Topics)
+                            {
+                                <option value="@topic.Name">@topic.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                <label class="field">
+                    <span>Name</span>
+                    <input @bind="ResourceFormName" />
+                </label>
+                @if (!string.IsNullOrWhiteSpace(ResourceFormError))
+                {
+                    <div class="form-error">@ResourceFormError</div>
+                }
+            </div>
+            <div class="modal-actions">
+                <button class="btn ghost" @onclick="CloseResourceModal">Cancel</button>
+                <button class="btn primary" @onclick="CreateResource">Create</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (IsConnectionModalOpen)
+{
+    <div class="modal-backdrop">
+        <div class="modal">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">@(IsEditingConnection ? "Edit Connection" : "New Connection")</div>
+                    <div class="modal-subtitle">Stored in connections.json</div>
+                </div>
+                <button class="icon-btn" @onclick="CloseConnectionModal">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="field">
+                    <span>Name</span>
+                    <input @bind="ConnectionForm.Name" disabled="@IsEditingConnection" />
+                </label>
+                <label class="field">
+                    <span>Use Managed Identity</span>
+                    <input type="checkbox" @bind="ConnectionForm.UseManagedIdentity" disabled="@IsReadOnlyConnection" />
+                </label>
+                <label class="field inline">
+                    <input type="checkbox" @bind="UseKeyVault" disabled="@IsReadOnlyConnection" />
+                    <span>Use Key Vault</span>
+                </label>
+                @if (!UseKeyVault)
+                {
+                    <label class="field">
+                        <span>Connection String</span>
+                        <input @bind="ConnectionForm.ConnectionString" disabled="@IsReadOnlyConnection" />
+                    </label>
+                }
+                else
+                {
+                    <label class="field">
+                        <span>Key Vault URI</span>
+                        <input @bind="KeyVaultForm.VaultUri" disabled="@IsReadOnlyConnection" />
+                    </label>
+                    <label class="field">
+                        <span>Secret Name</span>
+                        <input @bind="KeyVaultForm.SecretName" disabled="@IsReadOnlyConnection" />
+                    </label>
+                    <label class="field">
+                        <span>Secret Version</span>
+                        <input @bind="KeyVaultForm.SecretVersion" disabled="@IsReadOnlyConnection" />
+                    </label>
+                }
+                @if (!string.IsNullOrWhiteSpace(ConnectionFormError))
+                {
+                    <div class="form-error">@ConnectionFormError</div>
+                }
+            </div>
+            <div class="modal-actions">
+                <button class="btn ghost" @onclick="CloseConnectionModal">Cancel</button>
+                @if (IsEditingConnection && !IsReadOnlyConnection)
+                {
+                    <button class="btn ghost" @onclick="DeleteConnection">Delete</button>
+                }
+                <button class="btn primary" @onclick="SaveConnection" disabled="@IsReadOnlyConnection">Save</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private enum UiView
+    {
+        Connections,
+        Resources,
+        Messages,
+        Settings
+    }
+
+    private enum ResourceTypeFilter
+    {
+        Queues,
+        Topics,
+        Subscriptions
+    }
+
+    private sealed class ConnectionCard
+    {
+        public string Name { get; init; } = string.Empty;
+        public int QueueCount { get; set; }
+        public int TopicCount { get; set; }
+        public bool IsOnline { get; set; }
+        public bool IsEditable { get; set; }
+    }
+
+    private sealed class ResourceRow
+    {
+        public string Name { get; init; } = string.Empty;
+        public string Id { get; init; } = string.Empty;
+        public string Type { get; init; } = string.Empty;
+        public long ActiveCount { get; init; }
+        public long DlqCount { get; init; }
+        public bool IsActive { get; init; }
+        public string? QueueName { get; init; }
+        public string? TopicName { get; init; }
+        public string? SubscriptionName { get; init; }
+    }
+
+    private UiView CurrentView { get; set; } = UiView.Connections;
+    private ResourceTypeFilter ResourceFilterType { get; set; } = ResourceTypeFilter.Queues;
+    private List<ConnectionInfo> Connections { get; set; } = [];
+    private List<ConnectionCard> ConnectionCards { get; set; } = [];
+    private ConnectionInfo? SelectedConnection { get; set; }
+    private List<TopicInfo> Topics { get; set; } = [];
+    private List<QueueInfo> Queues { get; set; } = [];
+    private List<SubscriptionInfo> Subscriptions { get; set; } = [];
+    private List<MessageDto> Messages { get; set; } = [];
+    private List<MessageDto> DlqMessages { get; set; } = [];
+    private MessageDto? SelectedMessage { get; set; }
+    private ResourceRow? SelectedResource { get; set; }
+
+    private bool IsDlqView { get; set; }
+    private bool IsBusy { get; set; }
+    private string StatusMessage { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private string ResourceFilter { get; set; } = string.Empty;
+    private string MessageFilter { get; set; } = string.Empty;
+    private string SelectedTopicForSubscriptions { get; set; } = string.Empty;
+
+    private bool IsConnectionModalOpen { get; set; }
+    private bool IsEditingConnection { get; set; }
+    private bool IsReadOnlyConnection { get; set; }
+    private bool IsResourceModalOpen { get; set; }
+    private string ResourceFormType { get; set; } = "Queue";
+    private string ResourceFormName { get; set; } = string.Empty;
+    private string ResourceFormTopic { get; set; } = string.Empty;
+    private string ResourceFormError { get; set; } = string.Empty;
+    private ConnectionUpsertRequest ConnectionForm { get; set; } = new();
+    private bool UseKeyVault { get; set; }
+    private string ConnectionFormError { get; set; } = string.Empty;
+
+    private int ResourcePageSize { get; set; } = 100;
+    private int MessagePageSize { get; set; } = 100;
+    private string? QueueContinuationToken { get; set; }
+    private string? TopicContinuationToken { get; set; }
+    private string? SubscriptionContinuationToken { get; set; }
+    private string? MessageContinuationToken { get; set; }
+    private List<string?> QueueTokens { get; } = [null];
+    private List<string?> TopicTokens { get; } = [null];
+    private List<string?> SubscriptionTokens { get; } = [null];
+    private List<string?> MessageTokensActive { get; } = [null];
+    private List<string?> MessageTokensDlq { get; } = [null];
+    private int QueuePageIndex { get; set; }
+    private int TopicPageIndex { get; set; }
+    private int SubscriptionPageIndex { get; set; }
+    private int MessagePageIndexActive { get; set; }
+    private int MessagePageIndexDlq { get; set; }
+
+    private bool HasConnection => SelectedConnection != null;
+    private bool HasSelection => SelectedResource != null;
+    private bool CanSend => SelectedResource?.QueueName != null || SelectedResource?.SubscriptionName != null;
+    private bool CanPrevResource => ResourceFilterType switch
+    {
+        ResourceTypeFilter.Queues => QueuePageIndex > 0,
+        ResourceTypeFilter.Topics => TopicPageIndex > 0,
+        ResourceTypeFilter.Subscriptions => SubscriptionPageIndex > 0,
+        _ => false
+    };
+    private bool CanNextResource => ResourceFilterType switch
+    {
+        ResourceTypeFilter.Queues => !string.IsNullOrWhiteSpace(QueueContinuationToken),
+        ResourceTypeFilter.Topics => !string.IsNullOrWhiteSpace(TopicContinuationToken),
+        ResourceTypeFilter.Subscriptions => !string.IsNullOrWhiteSpace(SubscriptionContinuationToken),
+        _ => false
+    };
+    private bool CanPrevMessage => IsDlqView ? MessagePageIndexDlq > 0 : MessagePageIndexActive > 0;
+    private bool CanNextMessage => !string.IsNullOrWhiteSpace(MessageContinuationToken);
+    private KeyVaultSecretConfig KeyVaultForm => ConnectionForm.KeyVault ??= new KeyVaultSecretConfig();
+
+    private long TotalDlqCount =>
+        Queues.Sum(q => q.DlqCount) + Subscriptions.Sum(s => s.DlqCount);
+
+    private string SelectionLabel =>
+        SelectedResource?.QueueName ?? SelectedResource?.SubscriptionName ?? "None";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadConnections();
+    }
+
+    private void SetView(UiView view)
+    {
+        if (view == UiView.Resources && !HasConnection)
+            return;
+        if (view == UiView.Messages && !HasSelection)
+            return;
+
+        CurrentView = view;
+    }
+
+    private async Task ApplySettings()
+    {
+        ResetResourcePaging();
+        ResetMessagePaging();
+        if (CurrentView == UiView.Resources)
+            await LoadResources();
+        if (CurrentView == UiView.Messages)
+            await LoadMessages();
+    }
+
+    private async Task LoadConnections()
+    {
+        await Execute(async () =>
+        {
+            Connections = (await Api.GetConnectionsAsync()).ToList();
+            ConnectionCards = Connections
+                .Select(c => new ConnectionCard
+                {
+                    Name = c.Name,
+                    QueueCount = 0,
+                    TopicCount = 0,
+                    IsOnline = true,
+                    IsEditable = c.IsEditable
+                })
+                .ToList();
+
+            foreach (ConnectionCard card in ConnectionCards)
+            {
+                bool isOnline = await Api.GetConnectionHealthAsync(card.Name);
+                card.IsOnline = isOnline;
+            }
+        });
+    }
+
+    private IEnumerable<ConnectionCard> FilteredConnections()
+    {
+        return ConnectionCards;
+    }
+
+    private async Task Connect(string name)
+    {
+        await Execute(async () =>
+        {
+            SelectedConnection = Connections.FirstOrDefault(c => c.Name == name);
+            await LoadResources();
+            CurrentView = UiView.Resources;
+        });
+    }
+
+    private async Task Manage(string name)
+    {
+        ConnectionInfo? connection = Connections.FirstOrDefault(c => c.Name == name);
+        if (connection == null)
+            return;
+
+        await OpenEditConnection(connection.Name, !connection.IsEditable);
+    }
+
+    private async Task OpenCreateConnection()
+    {
+        IsEditingConnection = false;
+        ConnectionForm = new ConnectionUpsertRequest();
+        UseKeyVault = false;
+        ConnectionFormError = string.Empty;
+        IsConnectionModalOpen = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenEditConnection(string name, bool readOnly)
+    {
+        await Execute(async () =>
+        {
+            ConnectionUpsertRequest detail = await Api.GetConnectionAsync(name);
+            ConnectionForm = detail;
+            UseKeyVault = detail.KeyVault != null;
+            ConnectionFormError = string.Empty;
+            IsEditingConnection = true;
+            IsReadOnlyConnection = readOnly;
+            IsConnectionModalOpen = true;
+        });
+    }
+
+    private void CloseConnectionModal()
+    {
+        IsConnectionModalOpen = false;
+        ConnectionFormError = string.Empty;
+        IsReadOnlyConnection = false;
+    }
+
+    private async Task SaveConnection()
+    {
+        if (IsReadOnlyConnection)
+            return;
+
+        ConnectionFormError = string.Empty;
+        if (UseKeyVault)
+        {
+            ConnectionForm.KeyVault ??= new KeyVaultSecretConfig();
+            ConnectionForm.ConnectionString = null;
+        }
+        else
+        {
+            ConnectionForm.KeyVault = null;
+        }
+
+        await Execute(async () =>
+        {
+            if (IsEditingConnection)
+                await Api.UpdateConnectionAsync(ConnectionForm.Name, ConnectionForm);
+            else
+                await Api.CreateConnectionAsync(ConnectionForm);
+
+            IsConnectionModalOpen = false;
+            await LoadConnections();
+        });
+    }
+
+    private async Task DeleteConnection()
+    {
+        if (IsReadOnlyConnection)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", "Delete this connection?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            await Api.DeleteConnectionAsync(ConnectionForm.Name);
+            IsConnectionModalOpen = false;
+            await LoadConnections();
+        });
+    }
+
+    private async Task LoadResources()
+    {
+        if (SelectedConnection == null)
+            return;
+
+        ResetResourcePaging();
+        await LoadQueuesPage();
+        await LoadTopicsPage();
+
+        ConnectionCard? card = ConnectionCards.FirstOrDefault(c => c.Name == SelectedConnection.Name);
+        if (card != null)
+        {
+            card.QueueCount = Queues.Count;
+            card.TopicCount = Topics.Count;
+            card.IsOnline = true;
+        }
+    }
+
+    private async Task RefreshResources()
+    {
+        await Execute(async () => { await LoadResources(); });
+    }
+
+    private void OpenCreateResource()
+    {
+        ResourceFormType = "Queue";
+        ResourceFormName = string.Empty;
+        ResourceFormTopic = Topics.FirstOrDefault()?.Name ?? string.Empty;
+        ResourceFormError = string.Empty;
+        IsResourceModalOpen = true;
+    }
+
+    private void CloseResourceModal()
+    {
+        IsResourceModalOpen = false;
+        ResourceFormError = string.Empty;
+    }
+
+    private void OnResourceTypeChanged()
+    {
+        if (ResourceFormType == "Subscription" && string.IsNullOrWhiteSpace(ResourceFormTopic))
+            ResourceFormTopic = Topics.FirstOrDefault()?.Name ?? string.Empty;
+    }
+
+    private async Task CreateResource()
+    {
+        if (SelectedConnection == null)
+            return;
+
+        ResourceFormError = string.Empty;
+        if (string.IsNullOrWhiteSpace(ResourceFormName))
+        {
+            ResourceFormError = "Name is required.";
+            return;
+        }
+
+        await Execute(async () =>
+        {
+            switch (ResourceFormType)
+            {
+                case "Queue":
+                    await Api.CreateQueueAsync(SelectedConnection.Name, ResourceFormName);
+                    ResetResourcePaging();
+                    await LoadQueuesPage();
+                    break;
+                case "Topic":
+                    await Api.CreateTopicAsync(SelectedConnection.Name, ResourceFormName);
+                    ResetResourcePaging();
+                    await LoadTopicsPage();
+                    break;
+                case "Subscription":
+                    if (string.IsNullOrWhiteSpace(ResourceFormTopic))
+                    {
+                        ResourceFormError = "Topic is required.";
+                        return;
+                    }
+                    await Api.CreateSubscriptionAsync(SelectedConnection.Name, ResourceFormTopic, ResourceFormName);
+                    ResetSubscriptionPaging();
+                    SelectedTopicForSubscriptions = ResourceFormTopic;
+                    await LoadSubscriptionsPage();
+                    break;
+            }
+
+            IsResourceModalOpen = false;
+        });
+    }
+
+    private async Task DeleteResource(ResourceRow row)
+    {
+        if (SelectedConnection == null)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", $"Delete {row.Type} '{row.Name}'?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            if (row.Type == "Queue" && row.QueueName != null)
+            {
+                await Api.DeleteQueueAsync(SelectedConnection.Name, row.QueueName);
+                ResetResourcePaging();
+                await LoadQueuesPage();
+            }
+            else if (row.Type == "Topic" && row.TopicName != null)
+            {
+                await Api.DeleteTopicAsync(SelectedConnection.Name, row.TopicName);
+                ResetResourcePaging();
+                await LoadTopicsPage();
+            }
+            else if (row.Type == "Subscription" && row.TopicName != null && row.SubscriptionName != null)
+            {
+                await Api.DeleteSubscriptionAsync(SelectedConnection.Name, row.TopicName, row.SubscriptionName);
+                ResetSubscriptionPaging();
+                await LoadSubscriptionsPage();
+            }
+        });
+    }
+
+    private async Task SetResourceFilter(ResourceTypeFilter filter)
+    {
+        ResourceFilterType = filter;
+        ResourceFilter = string.Empty;
+        if (filter == ResourceTypeFilter.Subscriptions)
+        {
+            SelectedTopicForSubscriptions = Topics.FirstOrDefault()?.Name ?? string.Empty;
+            ResetSubscriptionPaging();
+            await LoadSubscriptionsPage();
+        }
+        else
+        {
+            SelectedTopicForSubscriptions = string.Empty;
+        }
+    }
+
+    private async Task OnSubscriptionTopicChanged()
+    {
+        ResetSubscriptionPaging();
+        await LoadSubscriptionsPage();
+    }
+
+    private async Task OnResourcePageSizeChanged()
+    {
+        ResetResourcePaging();
+        await LoadQueuesPage();
+        await LoadTopicsPage();
+        if (ResourceFilterType == ResourceTypeFilter.Subscriptions)
+            await LoadSubscriptionsPage();
+    }
+
+    private async Task PrevResourcePage()
+    {
+        switch (ResourceFilterType)
+        {
+            case ResourceTypeFilter.Queues:
+                if (QueuePageIndex > 0) QueuePageIndex--;
+                await LoadQueuesPage();
+                break;
+            case ResourceTypeFilter.Topics:
+                if (TopicPageIndex > 0) TopicPageIndex--;
+                await LoadTopicsPage();
+                break;
+            case ResourceTypeFilter.Subscriptions:
+                if (SubscriptionPageIndex > 0) SubscriptionPageIndex--;
+                await LoadSubscriptionsPage();
+                break;
+        }
+    }
+
+    private async Task NextResourcePage()
+    {
+        switch (ResourceFilterType)
+        {
+            case ResourceTypeFilter.Queues:
+                if (!string.IsNullOrWhiteSpace(QueueContinuationToken))
+                {
+                    QueuePageIndex++;
+                    EnsureToken(QueueTokens, QueuePageIndex, QueueContinuationToken);
+                    await LoadQueuesPage();
+                }
+                break;
+            case ResourceTypeFilter.Topics:
+                if (!string.IsNullOrWhiteSpace(TopicContinuationToken))
+                {
+                    TopicPageIndex++;
+                    EnsureToken(TopicTokens, TopicPageIndex, TopicContinuationToken);
+                    await LoadTopicsPage();
+                }
+                break;
+            case ResourceTypeFilter.Subscriptions:
+                if (!string.IsNullOrWhiteSpace(SubscriptionContinuationToken))
+                {
+                    SubscriptionPageIndex++;
+                    EnsureToken(SubscriptionTokens, SubscriptionPageIndex, SubscriptionContinuationToken);
+                    await LoadSubscriptionsPage();
+                }
+                break;
+        }
+    }
+
+    private void ResetResourcePaging()
+    {
+        QueueTokens.Clear();
+        QueueTokens.Add(null);
+        TopicTokens.Clear();
+        TopicTokens.Add(null);
+        SubscriptionTokens.Clear();
+        SubscriptionTokens.Add(null);
+        QueuePageIndex = 0;
+        TopicPageIndex = 0;
+        SubscriptionPageIndex = 0;
+        QueueContinuationToken = null;
+        TopicContinuationToken = null;
+        SubscriptionContinuationToken = null;
+    }
+
+    private void ResetSubscriptionPaging()
+    {
+        SubscriptionTokens.Clear();
+        SubscriptionTokens.Add(null);
+        SubscriptionPageIndex = 0;
+        SubscriptionContinuationToken = null;
+    }
+
+    private async Task LoadQueuesPage()
+    {
+        if (SelectedConnection == null)
+            return;
+
+        string? token = QueueTokens.ElementAtOrDefault(QueuePageIndex);
+        PagedResult<QueueInfo> result = await Api.GetQueuesAsync(SelectedConnection.Name, ResourcePageSize, token);
+        Queues = result.Items;
+        QueueContinuationToken = result.ContinuationToken;
+    }
+
+    private async Task LoadTopicsPage()
+    {
+        if (SelectedConnection == null)
+            return;
+
+        string? token = TopicTokens.ElementAtOrDefault(TopicPageIndex);
+        PagedResult<TopicInfo> result = await Api.GetTopicsAsync(SelectedConnection.Name, ResourcePageSize, token);
+        Topics = result.Items;
+        TopicContinuationToken = result.ContinuationToken;
+    }
+
+    private async Task LoadSubscriptionsPage()
+    {
+        if (SelectedConnection == null || string.IsNullOrWhiteSpace(SelectedTopicForSubscriptions))
+        {
+            Subscriptions = [];
+            SubscriptionContinuationToken = null;
+            return;
+        }
+
+        string? token = SubscriptionTokens.ElementAtOrDefault(SubscriptionPageIndex);
+        PagedResult<SubscriptionInfo> result = await Api.GetSubscriptionsAsync(
+            SelectedConnection.Name,
+            SelectedTopicForSubscriptions,
+            ResourcePageSize,
+            token);
+        Subscriptions = result.Items;
+        SubscriptionContinuationToken = result.ContinuationToken;
+    }
+
+    private static void EnsureToken(List<string?> tokens, int index, string? token)
+    {
+        while (tokens.Count <= index)
+            tokens.Add(null);
+        tokens[index] = token;
+    }
+
+    private IEnumerable<ResourceRow> FilteredResources()
+    {
+        IEnumerable<ResourceRow> rows = BuildResourceRows();
+        if (string.IsNullOrWhiteSpace(ResourceFilter))
+            return rows;
+
+        return rows.Where(r => r.Name.Contains(ResourceFilter, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private IEnumerable<ResourceRow> BuildResourceRows()
+    {
+        if (ResourceFilterType == ResourceTypeFilter.Queues)
+        {
+            foreach (QueueInfo queue in Queues)
+            {
+                yield return new ResourceRow
+                {
+                    Name = queue.Name,
+                    Id = $"SB-Q-{Math.Abs(queue.Name.GetHashCode()) % 10000:0000}",
+                    Type = "Queue",
+                    ActiveCount = queue.MessageCount,
+                    DlqCount = queue.DlqCount,
+                    IsActive = true,
+                    QueueName = queue.Name
+                };
+            }
+            yield break;
+        }
+
+        if (ResourceFilterType == ResourceTypeFilter.Topics)
+        {
+            foreach (TopicInfo topic in Topics)
+            {
+                yield return new ResourceRow
+                {
+                    Name = topic.Name,
+                    Id = $"SB-T-{Math.Abs(topic.Name.GetHashCode()) % 10000:0000}",
+                    Type = "Topic",
+                    ActiveCount = 0,
+                    DlqCount = 0,
+                    IsActive = true,
+                    TopicName = topic.Name
+                };
+            }
+            yield break;
+        }
+
+        foreach (SubscriptionInfo subscription in Subscriptions)
+        {
+            yield return new ResourceRow
+            {
+                Name = $"{SelectedTopicForSubscriptions}/{subscription.Name}",
+                Id = $"SB-S-{Math.Abs(subscription.Name.GetHashCode()) % 10000:0000}",
+                Type = "Subscription",
+                ActiveCount = subscription.MessageCount,
+                DlqCount = subscription.DlqCount,
+                IsActive = true,
+                TopicName = SelectedTopicForSubscriptions,
+                SubscriptionName = subscription.Name
+            };
+        }
+    }
+
+    private async Task OpenMessages(ResourceRow row)
+    {
+        if (row.TopicName != null && row.SubscriptionName == null && row.QueueName == null)
+        {
+            ResourceFilterType = ResourceTypeFilter.Subscriptions;
+            SelectedTopicForSubscriptions = row.TopicName;
+            ResetSubscriptionPaging();
+            await LoadSubscriptionsPage();
+            return;
+        }
+
+        SelectedResource = row;
+        SelectedMessage = null;
+        IsDlqView = false;
+        ResetMessagePaging();
+        CurrentView = UiView.Messages;
+        await LoadMessages();
+    }
+
+    private async Task LoadMessages()
+    {
+        if (SelectedConnection == null || SelectedResource == null)
+            return;
+
+        long? token = GetCurrentMessageToken();
+        if (SelectedResource.QueueName != null)
+        {
+            PagedResult<MessageDto> result = await Api.GetQueueMessagesAsync(
+                SelectedConnection.Name,
+                SelectedResource.QueueName,
+                IsDlqView,
+                MessagePageSize,
+                token);
+            SetMessagePage(result);
+        }
+        else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+        {
+            PagedResult<MessageDto> result = await Api.GetSubscriptionMessagesAsync(
+                SelectedConnection.Name,
+                SelectedResource.TopicName,
+                SelectedResource.SubscriptionName,
+                IsDlqView,
+                MessagePageSize,
+                token);
+            SetMessagePage(result);
+        }
+    }
+
+    private IEnumerable<MessageDto> FilteredMessages()
+    {
+        IEnumerable<MessageDto> source = IsDlqView ? DlqMessages : Messages;
+        if (string.IsNullOrWhiteSpace(MessageFilter))
+            return source;
+
+        return source.Where(m => m.MessageId.Contains(MessageFilter, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task RefreshMessages()
+    {
+        await Execute(async () => { await LoadMessages(); });
+    }
+
+    private async Task SetDlq(bool isDlq)
+    {
+        IsDlqView = isDlq;
+        SelectedMessage = null;
+        ResetMessagePaging();
+        await Execute(async () => { await LoadMessages(); });
+    }
+
+    private void SelectMessage(MessageDto message)
+    {
+        SelectedMessage = message;
+    }
+
+    private async Task OnMessagePageSizeChanged()
+    {
+        ResetMessagePaging();
+        await LoadMessages();
+    }
+
+    private async Task PrevMessagePage()
+    {
+        if (IsDlqView)
+        {
+            if (MessagePageIndexDlq > 0) MessagePageIndexDlq--;
+        }
+        else
+        {
+            if (MessagePageIndexActive > 0) MessagePageIndexActive--;
+        }
+
+        await LoadMessages();
+    }
+
+    private async Task NextMessagePage()
+    {
+        if (string.IsNullOrWhiteSpace(MessageContinuationToken))
+            return;
+
+        if (IsDlqView)
+        {
+            MessagePageIndexDlq++;
+            EnsureToken(MessageTokensDlq, MessagePageIndexDlq, MessageContinuationToken);
+        }
+        else
+        {
+            MessagePageIndexActive++;
+            EnsureToken(MessageTokensActive, MessagePageIndexActive, MessageContinuationToken);
+        }
+
+        await LoadMessages();
+    }
+
+    private void ResetMessagePaging()
+    {
+        MessageTokensActive.Clear();
+        MessageTokensActive.Add(null);
+        MessageTokensDlq.Clear();
+        MessageTokensDlq.Add(null);
+        MessagePageIndexActive = 0;
+        MessagePageIndexDlq = 0;
+        MessageContinuationToken = null;
+    }
+
+    private long? GetCurrentMessageToken()
+    {
+        string? token = IsDlqView
+            ? MessageTokensDlq.ElementAtOrDefault(MessagePageIndexDlq)
+            : MessageTokensActive.ElementAtOrDefault(MessagePageIndexActive);
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
+
+        return long.TryParse(token, out long parsed) ? parsed : null;
+    }
+
+    private void SetMessagePage(PagedResult<MessageDto> result)
+    {
+        if (IsDlqView)
+            DlqMessages = result.Items;
+        else
+            Messages = result.Items;
+
+        MessageContinuationToken = result.ContinuationToken;
+    }
+
+    private async Task SendMessage()
+    {
+        if (SelectedConnection == null || SelectedResource == null)
+            return;
+
+        string content = await Js.InvokeAsync<string>("prompt", "Message content");
+        if (string.IsNullOrWhiteSpace(content))
+            return;
+
+        await Execute(async () =>
+        {
+            ResetMessagePaging();
+            if (SelectedResource.QueueName != null)
+            {
+                await Api.SendQueueMessageAsync(SelectedConnection.Name, SelectedResource.QueueName, content);
+            }
+            else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+            {
+                await Api.SendTopicMessageAsync(SelectedConnection.Name, SelectedResource.TopicName, content);
+            }
+
+            await LoadMessages();
+        });
+    }
+
+    private async Task DeleteMessage()
+    {
+        if (SelectedConnection == null || SelectedResource == null || SelectedMessage == null)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", "Delete selected message?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            ResetMessagePaging();
+            if (SelectedResource.QueueName != null)
+            {
+                await Api.DeleteQueueMessageAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.QueueName,
+                    SelectedMessage.MessageId,
+                    IsDlqView);
+            }
+            else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+            {
+                await Api.DeleteSubscriptionMessageAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.TopicName,
+                    SelectedResource.SubscriptionName,
+                    SelectedMessage.MessageId,
+                    IsDlqView);
+            }
+
+            await LoadMessages();
+        });
+    }
+
+    private async Task DeadletterMessage()
+    {
+        if (SelectedConnection == null || SelectedResource == null || SelectedMessage == null)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", "Dead-letter selected message?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            ResetMessagePaging();
+            if (SelectedResource.QueueName != null)
+            {
+                await Api.DeadletterQueueMessageAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.QueueName,
+                    SelectedMessage.MessageId);
+            }
+            else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+            {
+                await Api.DeadletterSubscriptionMessageAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.TopicName,
+                    SelectedResource.SubscriptionName,
+                    SelectedMessage.MessageId);
+            }
+
+            await LoadMessages();
+        });
+    }
+
+    private async Task ResubmitMessage()
+    {
+        if (SelectedConnection == null || SelectedResource == null || SelectedMessage == null)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", "Resubmit selected message?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            ResetMessagePaging();
+            if (SelectedResource.QueueName != null)
+            {
+                await Api.ResubmitQueueMessageAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.QueueName,
+                    SelectedMessage.SequenceNumber);
+            }
+            else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+            {
+                await Api.ResubmitSubscriptionMessageAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.TopicName,
+                    SelectedResource.SubscriptionName,
+                    SelectedMessage.SequenceNumber);
+            }
+
+            await LoadMessages();
+        });
+    }
+
+    private async Task PurgeMessages()
+    {
+        if (SelectedConnection == null || SelectedResource == null)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", "Purge all messages?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            ResetMessagePaging();
+            if (SelectedResource.QueueName != null)
+            {
+                await Api.PurgeQueueAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.QueueName,
+                    IsDlqView);
+            }
+            else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+            {
+                await Api.PurgeSubscriptionAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.TopicName,
+                    SelectedResource.SubscriptionName,
+                    IsDlqView);
+            }
+
+            await LoadMessages();
+        });
+    }
+
+    private async Task TransferDlq()
+    {
+        if (SelectedConnection == null || SelectedResource == null || !IsDlqView)
+            return;
+
+        bool confirmed = await Js.InvokeAsync<bool>("confirm", "Transfer all DLQ messages?");
+        if (!confirmed)
+            return;
+
+        await Execute(async () =>
+        {
+            ResetMessagePaging();
+            if (SelectedResource.QueueName != null)
+            {
+                await Api.TransferQueueDlqAsync(SelectedConnection.Name, SelectedResource.QueueName);
+            }
+            else if (SelectedResource.SubscriptionName != null && SelectedResource.TopicName != null)
+            {
+                await Api.TransferSubscriptionDlqAsync(
+                    SelectedConnection.Name,
+                    SelectedResource.TopicName,
+                    SelectedResource.SubscriptionName);
+            }
+
+            await LoadMessages();
+        });
+    }
+
+    private async Task RefreshCurrent()
+    {
+        await Execute(async () =>
+        {
+            switch (CurrentView)
+            {
+                case UiView.Connections:
+                    await LoadConnections();
+                    break;
+                case UiView.Resources:
+                    await LoadResources();
+                    break;
+                case UiView.Messages:
+                    await LoadMessages();
+                    break;
+            }
+        });
+    }
+
+    private async Task Execute(Func<Task> action)
+    {
+        try
+        {
+            IsBusy = true;
+            ErrorMessage = string.Empty;
+            StatusMessage = "Processing...";
+            await action();
+            StatusMessage = "Ready.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            StatusMessage = string.Empty;
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+}
