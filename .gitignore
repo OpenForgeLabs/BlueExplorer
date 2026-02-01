@@ -1,0 +1,101 @@
+# OS / system
+.DS_Store
+Thumbs.db
+
+# Build outputs
+bin/
+obj/
+out/
+publish/
+artifacts/
+
+# .NET / Visual Studio
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.cache
+*.log
+*.dbmdl
+*.jfm
+*.pdb
+*.exe
+*.dll
+*.app
+*.dylib
+*.so
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+*.nuget.cache
+*.ncrunchproject
+*.ncrunchsolution
+*.DotSettings.user
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+*.trx
+*.testlog
+*.vspx
+*.vsps
+*.vsix
+*.tmp
+*.tmp_proj
+*.sln.cache
+*.sln.ide
+*.sln.iml
+*.sln.docstates
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+*.csproj.user
+*.resharper
+*.ReSharper
+*.ReSharper.user
+_ReSharper*/
+
+# NuGet
+packages/
+.nuget/
+
+# App state / local settings
+appstate.json
+appsettings.Development.json
+
+# Logs
+logs/
+*.log
+
+# Azure / local secrets
+*.secrets.json
+secrets.json
+**/secrets.json
+
+# Docker
+*.pid
+*.local
+
+# Node / Web (if applicable)
+node_modules/
+dist/
+build/
+coverage/
+*.map
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Misc
+*.swp
+*.swo
+*.bak
+*.orig
+*.tmp

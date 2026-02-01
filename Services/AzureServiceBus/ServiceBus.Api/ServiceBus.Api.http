@@ -1,0 +1,52 @@
+@ServiceBus.Api_HostAddress = http://localhost:5209
+
+### Get connections
+GET {{ServiceBus.Api_HostAddress}}/api/connections
+Accept: application/json
+
+### Create connection
+POST {{ServiceBus.Api_HostAddress}}/api/connections
+Content-Type: application/json
+
+{
+  "name": "dev-sb",
+  "useManagedIdentity": false,
+  "connectionString": "Endpoint=sb://...",
+  "keyVault": null
+}
+
+### Delete connection (requires confirmName)
+DELETE {{ServiceBus.Api_HostAddress}}/api/connections/dev-sb?confirmName=dev-sb
+
+### List queues
+GET {{ServiceBus.Api_HostAddress}}/api/connections/dev-sb/queues?pageSize=50
+Accept: application/json
+
+### Send queue message
+POST {{ServiceBus.Api_HostAddress}}/api/connections/dev-sb/queues/my-queue/messages
+Content-Type: application/json
+
+{
+  "content": "hello"
+}
+
+### Delete queue message (requires confirmName = messageId)
+POST {{ServiceBus.Api_HostAddress}}/api/connections/dev-sb/queues/my-queue/messages/delete?confirmName=message-id
+Content-Type: application/json
+
+{
+  "messageId": "message-id",
+  "isDlq": false,
+  "sequenceNumber": 0
+}
+
+### Purge queue DLQ (requires confirmName = queueName)
+POST {{ServiceBus.Api_HostAddress}}/api/connections/dev-sb/queues/my-queue/purge?confirmName=my-queue
+Content-Type: application/json
+
+{
+  "isDlq": true
+}
+
+### Transfer subscription DLQ (requires confirmName = subscriptionName)
+POST {{ServiceBus.Api_HostAddress}}/api/connections/dev-sb/topics/my-topic/subscriptions/my-sub/transfer-dlq?confirmName=my-sub

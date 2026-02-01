@@ -1,0 +1,64 @@
+version: "3.9"
+
+name: local-dev-messaging
+
+services:
+  # ---------------------------
+  # Redis
+  # ---------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: local-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # ---------------------------
+  # SQL Server (requerido por el emulator)
+  # ---------------------------
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: servicebus-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Str0ngP@ssw0rd!"
+    ports:
+      - "1433:1433"
+    networks:
+      - sb-emulator
+
+  # ---------------------------
+  # Azure Service Bus Emulator
+  # Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;
+  # ---------------------------
+  servicebus-emulator:
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    container_name: servicebus-emulator
+    depends_on:
+      - mssql
+    ports:
+      - "5672:5672"   # AMQP
+      - "5300:5300"   # Management / Health
+    volumes:
+      - ./config.json:/ServiceBus_Emulator/ConfigFiles/Config.json
+    environment:
+      ACCEPT_EULA: "Y"
+      SQL_SERVER: mssql
+      MSSQL_SA_PASSWORD: "Str0ngP@ssw0rd!"
+      EMULATOR_HTTP_PORT: "5300"
+      SQL_WAIT_INTERVAL: "15"
+    networks:
+      - sb-emulator
+
+networks:
+  sb-emulator:
+
+volumes:
+  redis_data:

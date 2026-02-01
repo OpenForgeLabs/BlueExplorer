@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Commons\Commons.csproj" />
+      <ProjectReference Include="..\AZRedis.Application\AZRedis.Application.csproj" />
+      <ProjectReference Include="..\AZRedis.Domain\AZRedis.Domain.csproj" />
+      <ProjectReference Include="..\AZRedis.Infrastructure\AZRedis.Infrastructure.csproj" />
+    </ItemGroup>
+
+</Project>

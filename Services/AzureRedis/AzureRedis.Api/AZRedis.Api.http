@@ -1,0 +1,46 @@
+@AZRedis.Api_HostAddress = http://localhost:5210
+
+### List connections
+GET {{AZRedis.Api_HostAddress}}/api/redis/connections
+Accept: application/json
+
+### Create connection
+POST {{AZRedis.Api_HostAddress}}/api/redis/connections
+Content-Type: application/json
+
+{
+  "name": "local-redis",
+  "connectionString": null,
+  "host": "localhost",
+  "port": 6379,
+  "password": null,
+  "useTls": false,
+  "database": 0
+}
+
+### Scan keys
+GET {{AZRedis.Api_HostAddress}}/api/redis/local-redis/keys?pattern=*&pageSize=50&cursor=0&db=0
+Accept: application/json
+
+### Get string value
+GET {{AZRedis.Api_HostAddress}}/api/redis/local-redis/strings/sample:key?db=0
+Accept: application/json
+
+### Set string value
+POST {{AZRedis.Api_HostAddress}}/api/redis/local-redis/strings/sample:key?db=0
+Content-Type: application/json
+
+{
+  "value": "hello",
+  "expirySeconds": 3600
+}
+
+### Delete key (requires confirmName)
+DELETE {{AZRedis.Api_HostAddress}}/api/redis/local-redis/keys/sample:key?confirmName=sample:key&db=0
+
+### Flush DB (requires confirmName)
+POST {{AZRedis.Api_HostAddress}}/api/redis/local-redis/keys/flush?confirmName=0&db=0
+
+### Cluster info
+GET {{AZRedis.Api_HostAddress}}/api/redis/local-redis/cluster/info
+Accept: application/json

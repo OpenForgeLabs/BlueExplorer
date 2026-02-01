@@ -1,0 +1,32 @@
+using AZRedis.Application.Interfaces;
+using AzureRedis.Api.Contracts;
+using Commons.Api;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AzureRedis.Api.Endpoints.ZSets;
+
+public static class RemoveZSetEndpoint
+{
+    public static void Map(RouteGroupBuilder group)
+    {
+        group.MapPost("{connectionName}/zsets/{key}/remove", HandleAsync)
+            .Produces<ApiResponse<long>>(StatusCodes.Status200OK)
+            .WithTags("Redis ZSets");
+    }
+
+    private static async Task<IResult> HandleAsync(
+        string connectionName,
+        string key,
+        [FromBody] ZSetRemoveRequest request,
+        [FromServices] IRedisConnectionProvider connectionProvider,
+        [FromServices] IRedisDataService dataService,
+        [FromQuery] int? db,
+        CancellationToken cancellationToken)
+    {
+        return await AZRedisEndpointHelpers.WithConnection(
+            connectionProvider,
+            connectionName,
+            cancellationToken,
+            connection => dataService.RemoveZSetAsync(connection, key, request.Members, db, cancellationToken));
+    }
+}

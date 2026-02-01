@@ -1,0 +1,11 @@
+[
+  {
+    "name": "Local",
+    "connectionString": "localhost:6379",
+    "host": "",
+    "port": 6379,
+    "password": null,
+    "useTls": false,
+    "database": 0
+  }
+]

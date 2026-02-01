@@ -1,50 +1,45 @@
-# Agent Guide for PurpleExplorer
+# Agent Guide for BlueExplorer
 
-This document provides essential information for AI agents and developers working on the PurpleExplorer project.
+This document provides essential information for AI agents and developers working on the BlueExplorer project.
 
 ## Project Overview
-PurpleExplorer is a cross-platform desktop application for managing Azure Service Bus. It allows users to view topics, subscriptions, queues, and messages, as well as send, delete, and resubmit messages.
+BlueExplorer is an Azure-first infrastructure explorer. The backend exposes APIs per resource (Service Bus now; Redis/Blob later).
 
 ## Tech Stack
-- **Framework:** [Avalonia UI](https://avaloniaui.net/) (Cross-platform UI framework for .NET)
-- **Pattern:** MVVM (Model-View-ViewModel) using [ReactiveUI](https://www.reactiveui.net/)
+- **Framework:** .NET 8.0 (backend APIs)
 - **Runtime:** .NET 8.0
 - **Azure SDK:** `Azure.Messaging.ServiceBus`
 
 ## Project Structure
-- `PurpleExplorer/`: Main project directory.
-    - `Assets/`: Icons and static assets.
-    - `Helpers/`: Core logic for interacting with Azure Service Bus and UI utilities.
-        - `TopicHelper.cs`: Logic for topics and subscriptions.
-        - `QueueHelper.cs`: Logic for queues.
-    - `Models/`: Data contracts and state models.
-        - `AppState.cs`: Defines the application's persistent state.
-        - `AppSettings.cs`: User-configurable settings.
-    - `Services/`: Application services (e.g., Logging).
-    - `Styles/`: XAML styles for the Avalonia UI.
-    - `ViewModels/`: UI logic and data binding.
-        - `MainWindowViewModel.cs`: The primary ViewModel for the main window.
-    - `Views/`: XAML files for the UI.
-        - `MainWindow.xaml`: The main application window.
+- `Services/`: Backend (.NET).
+    - `AzureServiceBus/ServiceBus.Api`: Service Bus API.
+    - `AzureServiceBus/ServiceBus.Application`: Service Bus use-case interfaces and services.
+    - `AzureServiceBus/ServiceBus.Infrastructure`: Service Bus integrations (Azure SDK).
+    - `AzureServiceBus/ServiceBus.Domain`: Service Bus domain models.
+    - `AzureRedis/AZRedis.Api`: Azure Redis API (scaffold).
+    - `AzureRedis/AZRedis.Application`: Azure Redis use-case interfaces and services (scaffold).
+    - `AzureRedis/AZRedis.Infrastructure`: Azure Redis integrations (scaffold).
+    - `AzureRedis/AZRedis.Domain`: Azure Redis domain models.
+    - `Commons/`: Shared API response models and result types.
+- `Apps/`: Frontend (Next.js to be added).
 
 ## Key Components & Responsibilities
-### ViewModels
-- **MainWindowViewModel**: Coordinates most of the application's actions, including fetching resources, managing selections, and triggering operations like purging or transferring messages.
+### Presentation
+- **ServiceBus.Api**: HTTP endpoints and connection management for Service Bus.
 
-### Helpers
-- **TopicHelper / QueueHelper**: These classes wrap the Azure Service Bus SDK. They handle the low-level details of connecting to Azure, peeking messages, and performing management operations.
+### Infrastructure
+- **ServiceBus.Infrastructure**: Azure Service Bus SDK integrations.
 
 ### State Management
-- **AppState**: The application state is persisted in `appstate.json` (located in the project root or the executable directory). It stores saved connection strings, saved messages, and user settings.
-- **NewtonSoftJsonSuspensionDriver**: Handles the serialization and deserialization of the application state.
+- Connection data is stored by the ServiceBus application layer (see `Services/AzureServiceBus/ServiceBus.Application/Services`).
 
 ## Important Notes for Agents
 - **Destructive Actions**: Actions like "Delete Message" or "Purge" have significant consequences. Ensure the user is aware of the risks (as noted in the README regarding `DeliveryCount`).
-- **Azure SDK**: The project uses `Azure.Messaging.ServiceBus`. 
-- **Tests**: Currently, the project lacks automated tests. When adding new features, consider adding unit tests in a separate test project (e.g., `PurpleExplorer.Tests`).
+- **Azure SDK**: The Service Bus API uses `Azure.Messaging.ServiceBus`. 
+- **Tests**: Currently, the project lacks automated tests. When adding new features, consider adding unit tests in a separate test project (e.g., `BlueExplorer.Tests`).
 
 ## Development Workflow
-- **Running the app:** Use `dotnet run --project PurpleExplorer/PurpleExplorer.csproj`.
+- **Running the API:** From the `Services/` folder, run `dotnet run --project AzureServiceBus/ServiceBus.Api/ServiceBus.Api.csproj`.
 - **Building:** `dotnet build`.
 - **Formatting:** Follow the existing C# coding style (standard .NET conventions).
     - **Order of class members**: The order of class members should follow a logical sequence, starting with fields (constants, then readonly, then instance),
