@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BlueExplorer - New Topic</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="fixed inset-0 z-0 opacity-20 pointer-events-none">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between border-b border-solid border-slate-700 px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-3xl">database</span>
+<h2 class="text-lg font-bold">BlueExplorer</h2>
+</div>
+</div>
+</header>
+<div class="p-10">
+<div class="h-4 w-64 bg-slate-700 rounded mb-4"></div>
+<div class="h-10 w-full bg-slate-800 rounded mb-8"></div>
+<div class="grid grid-cols-3 gap-4">
+<div class="h-32 bg-slate-800 rounded"></div>
+<div class="h-32 bg-slate-800 rounded"></div>
+<div class="h-32 bg-slate-800 rounded"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+<div class="bg-white dark:bg-[#1c2127] w-full max-w-[640px] rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+<div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+<div class="flex flex-col gap-1">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Create New Resource</h2>
+<p class="text-sm text-slate-500 dark:text-[#9dabb9]">Configure a new Service Bus entity for <span class="text-primary font-mono text-xs">prod-west-bus</span></p>
+</div>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto max-h-[70vh]">
+<div class="px-6 py-4">
+<p class="text-sm font-medium mb-3 text-slate-700 dark:text-slate-300">Resource Type</p>
+<div class="flex h-11 items-center justify-center rounded-lg bg-slate-100 dark:bg-[#283039] p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-[#111418] has-[:checked]:shadow-sm has-[:checked]:text-primary dark:has-[:checked]:text-white text-slate-500 dark:text-[#9dabb9] text-sm font-semibold leading-normal transition-all">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">queue</span> Queue
+                            </span>
+<input class="invisible w-0" name="resource-type" type="radio" value="Queue"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-[#111418] has-[:checked]:shadow-sm has-[:checked]:text-primary dark:has-[:checked]:text-white text-slate-500 dark:text-[#9dabb9] text-sm font-semibold leading-normal transition-all">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">alt_route</span> Topic
+                            </span>
+<input checked="" class="invisible w-0" name="resource-type" type="radio" value="Topic"/>
+</label>
+</div>
+</div>
+<div class="px-6 py-3">
+<label class="flex flex-col w-full">
+<div class="flex justify-between items-center mb-2">
+<p class="text-slate-900 dark:text-white text-sm font-semibold">Resource Name</p>
+<span class="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Required</span>
+</div>
+<input class="form-input flex w-full rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-[#3b4754] bg-white dark:bg-[#1c2127] h-12 placeholder:text-slate-400 dark:placeholder:text-[#9dabb9] px-4 text-sm font-normal" placeholder="e.g. telemetry-events-topic" value=""/>
+</label>
+</div>
+<div class="grid grid-cols-2 gap-4 px-6 py-3">
+<div class="flex flex-col gap-2">
+<p class="text-slate-900 dark:text-white text-sm font-semibold flex items-center gap-1">
+                            Max Size
+                            <span class="material-symbols-outlined text-xs text-slate-500 cursor-help" title="Maximum size of the topic in megabytes">info</span>
+</p>
+<div class="flex gap-0">
+<input class="form-input flex-1 rounded-l-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-[#3b4754] bg-white dark:bg-[#1c2127] h-11 text-sm" type="number" value="1024"/>
+<select class="form-select w-24 rounded-r-lg border-l-0 text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-[#3b4754] bg-slate-50 dark:bg-[#283039] h-11 text-xs font-bold">
+<option>MB</option>
+<option>GB</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<p class="text-slate-900 dark:text-white text-sm font-semibold flex items-center gap-1">
+                            Message TTL
+                            <span class="material-symbols-outlined text-xs text-slate-500 cursor-help" title="Time to live for messages">info</span>
+</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 relative">
+<input class="form-input w-full rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-[#3b4754] bg-white dark:bg-[#1c2127] h-11 text-sm pr-10" type="number" value="14"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold uppercase">Days</span>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 py-6 border-t border-slate-200 dark:border-slate-700 mt-4 bg-slate-50/50 dark:bg-black/10">
+<p class="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4">Features &amp; Policies</p>
+<div class="grid grid-cols-2 gap-y-4 gap-x-8">
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center mt-0.5">
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary w-5 h-5 transition-all" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">Enable Partitioning</span>
+<span class="text-[11px] text-slate-500 leading-tight">Scale across multiple message brokers.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center mt-0.5">
+<input class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary w-5 h-5 transition-all" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">Support Ordering</span>
+<span class="text-[11px] text-slate-500 leading-tight">Maintain message order across subscriptions.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center mt-0.5">
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary w-5 h-5 transition-all" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">Duplicate Detection</span>
+<span class="text-[11px] text-slate-500 leading-tight">Drop duplicate messages in history window.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center mt-0.5">
+<input class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary w-5 h-5 transition-all" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">Enable Batched Operations</span>
+<span class="text-[11px] text-slate-500 leading-tight">Increase throughput via server-side batching.</span>
+</div>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<div class="relative flex items-center mt-0.5">
+<input class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary w-5 h-5 transition-all" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">Auto-Delete on Idle</span>
+<span class="text-[11px] text-slate-500 leading-tight">Remove topic after inactivity period.</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#1c2127] flex justify-between items-center">
+<button class="flex items-center gap-2 text-slate-600 dark:text-[#9dabb9] hover:text-slate-900 dark:hover:text-white text-sm font-semibold transition-colors">
+<span class="material-symbols-outlined text-lg">description</span>
+                    View Documentation
+                </button>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                        Cancel
+                    </button>
+<button class="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
+                        Create Topic
+                        <span class="material-symbols-outlined text-sm">rocket_launch</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

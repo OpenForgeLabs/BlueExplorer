@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add Redis Key - BlueExplorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "surface-dark": "#1c2127",
+                        "border-dark": "#3b4754",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .code-editor-lines {
+            background: rgba(0,0,0,0.2);
+            border-right: 1px solid #3b4754;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-10 py-3 bg-background-light dark:bg-background-dark">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined text-3xl">database</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">BlueExplorer</h2>
+</div>
+<label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-[#9dabb9] flex border-none bg-surface-dark items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-surface-dark text-white focus:ring-0 h-full placeholder:text-[#9dabb9] px-4 pl-2 text-base font-normal" placeholder="Search keys..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="flex items-center gap-9">
+<a class="text-[#9dabb9] hover:text-white text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-white text-sm font-medium border-b-2 border-primary pb-1" href="#">Redis</a>
+<a class="text-[#9dabb9] hover:text-white text-sm font-medium transition-colors" href="#">Logs</a>
+<a class="text-[#9dabb9] hover:text-white text-sm font-medium transition-colors" href="#">Metrics</a>
+</nav>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-surface-dark text-white hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-surface-dark text-white hover:bg-border-dark transition-colors relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-border-dark" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBfnDsezR0lraVP7XCrPvTBLXG__gyrpTKzmuVpLqY7rFdDYuEwPnni4FiYq8HdVo1YJeIQfu8gpRFyfYL4enb4xG-Ccjnb9ipAdDkotqzMQWPSj-DDcwsLnsWqarldkG8FBnVjdL8FcdSuvsOgxvpoVs1QO46wmsfR9O75UTW7VyaWUDBGMP5NAbeoOkw-xS6p-_ZuB8A30Ih6uZCMoQMWTgnYzFAmvGfifzh4pbI8vw1vk85i0roLUd2bLXIDBVOr24lypag8s5Q");'></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center p-6 relative">
+<!-- Main Content Background (Simulated Redis List) -->
+<div class="w-full max-w-5xl opacity-20 pointer-events-none blur-sm">
+<div class="flex flex-col gap-4">
+<div class="h-12 bg-surface-dark rounded-lg w-full"></div>
+<div class="h-12 bg-surface-dark rounded-lg w-3/4"></div>
+<div class="h-12 bg-surface-dark rounded-lg w-full"></div>
+<div class="h-12 bg-surface-dark rounded-lg w-5/6"></div>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 bg-background-dark/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+<!-- Modal Container -->
+<div class="bg-surface-dark w-full max-w-[720px] rounded-xl border border-border-dark shadow-2xl flex flex-col overflow-hidden">
+<!-- Modal Header -->
+<div class="flex items-center justify-between p-6 border-b border-border-dark">
+<div class="flex flex-col gap-1">
+<h3 class="text-white text-2xl font-bold leading-tight">Add New Redis Key</h3>
+<p class="text-[#9dabb9] text-sm font-normal">Create a new entry in the production cache cluster.</p>
+</div>
+<button class="text-[#9dabb9] hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 overflow-y-auto max-h-[70vh]">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+<!-- Data Type Select -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-sm font-medium">Data Type</label>
+<div class="relative">
+<select class="form-input w-full rounded-lg text-white border border-border-dark bg-background-dark/50 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 appearance-none cursor-pointer">
+<option value="string">String</option>
+<option value="hash">Hash</option>
+<option value="list">List</option>
+<option value="set">Set</option>
+<option value="zset">ZSet (Sorted Set)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 pointer-events-none text-[#9dabb9]">expand_more</span>
+</div>
+</div>
+<!-- TTL Input -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-sm font-medium flex items-center gap-1">
+                                TTL (Seconds)
+                                <span class="material-symbols-outlined text-xs text-[#9dabb9]" title="Time to Live. Leave blank for no expiration.">info</span>
+</label>
+<input class="form-input w-full rounded-lg text-white border border-border-dark bg-background-dark/50 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 placeholder:text-[#4b5563]" placeholder="e.g. 3600 (1 hour)" type="number"/>
+</div>
+</div>
+<!-- Key Name -->
+<div class="flex flex-col gap-2 mb-6">
+<label class="text-white text-sm font-medium">Key Name</label>
+<input class="form-input w-full rounded-lg text-white border border-border-dark bg-background-dark/50 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 font-mono placeholder:text-[#4b5563]" placeholder="user:1001:session_token" type="text"/>
+</div>
+<!-- Value Editor (IDE Style) -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<label class="text-white text-sm font-medium">Value</label>
+<div class="flex gap-2">
+<button class="text-xs px-2 py-1 rounded bg-border-dark text-[#9dabb9] hover:text-white transition-colors">JSON</button>
+<button class="text-xs px-2 py-1 rounded bg-transparent text-[#4b5563] hover:text-[#9dabb9] transition-colors">Text</button>
+</div>
+</div>
+<!-- IDE Textarea Simulation -->
+<div class="relative w-full rounded-lg border border-border-dark bg-[#0d1117] overflow-hidden">
+<div class="flex min-h-[200px]">
+<!-- Line Numbers -->
+<div class="code-editor-lines flex flex-col text-right px-3 py-4 text-[#4b5563] font-mono text-sm select-none gap-0.5">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+</div>
+<!-- Text Input Area -->
+<div class="flex-1 relative">
+<textarea class="w-full h-full min-h-[200px] bg-transparent border-none text-white focus:ring-0 p-4 font-mono text-sm resize-none placeholder:text-[#4b5563]" placeholder='{
+  "id": 1001,
+  "role": "admin",
+  "active": true
+}'></textarea>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-center mt-2 px-1">
+<span class="text-[10px] text-[#4b5563] uppercase font-bold tracking-wider">Format: UTF-8</span>
+<span class="text-[10px] text-primary uppercase font-bold tracking-wider flex items-center gap-1">
+<span class="w-1.5 h-1.5 bg-primary rounded-full"></span> Valid JSON
+                            </span>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-6 border-t border-border-dark flex items-center justify-between bg-background-dark/20">
+<div class="flex items-center text-[#9dabb9] text-xs gap-1">
+<kbd class="px-1.5 py-0.5 rounded bg-border-dark text-white font-mono">⌘</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-border-dark text-white font-mono">Enter</kbd>
+<span class="ml-1">to quick save</span>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 rounded-lg text-white font-semibold text-sm hover:bg-white/5 transition-colors border border-border-dark">
+                            Cancel
+                        </button>
+<button class="bg-primary hover:bg-primary/90 px-5 py-2.5 rounded-lg text-white font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg">add</span>
+                            Add Key
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Background Decoration -->
+<div class="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-400 to-primary"></div>
+</body></html>

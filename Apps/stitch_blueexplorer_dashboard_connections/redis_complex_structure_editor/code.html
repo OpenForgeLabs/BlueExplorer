@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Redis Complex Structure Editor - BlueExplorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Roboto+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["Roboto Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .mono-font { font-family: 'Roboto Mono', monospace; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b4754; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e5e7eb] dark:border-[#283039] px-6 py-3 bg-white dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-6">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">BlueExplorer</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-600 dark:text-[#9dabb9] hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-primary dark:text-white text-sm font-semibold border-b-2 border-primary pb-1" href="#">Instances</a>
+<a class="text-slate-600 dark:text-[#9dabb9] hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">Metrics</a>
+<a class="text-slate-600 dark:text-[#9dabb9] hover:text-primary dark:hover:text-white text-sm font-medium transition-colors" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-4 items-center">
+<label class="hidden lg:flex flex-col min-w-64 h-9">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-100 dark:bg-[#283039]">
+<div class="text-slate-400 dark:text-[#9dabb9] flex items-center justify-center pl-3">
+<span class="material-symbols-outlined text-sm">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 text-sm placeholder:text-slate-400 dark:placeholder:text-[#9dabb9] px-2" placeholder="Search keys..."/>
+</div>
+</label>
+<div class="flex gap-2">
+<button class="flex size-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-[#283039] text-slate-600 dark:text-white hover:bg-slate-200 dark:hover:bg-[#3b4754] transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<div class="h-9 w-[1px] bg-slate-200 dark:bg-[#283039] mx-1"></div>
+<button class="flex size-9 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex h-[calc(100vh-61px)] overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-[#283039] bg-white dark:bg-background-dark flex flex-col shrink-0">
+<div class="p-4 flex flex-col gap-6">
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wider opacity-60">Redis Instance</h1>
+<p class="text-slate-600 dark:text-[#9dabb9] text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-primary">cloud</span>
+                        Azure East US
+                    </p>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 text-primary group cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] fill-1">key</span>
+<p class="text-sm font-semibold">Keys</p>
+</div>
+<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary text-white">1.2k</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-[#9dabb9] hover:bg-slate-100 dark:hover:bg-[#283039] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">insights</span>
+<p class="text-sm font-medium">Performance</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-[#9dabb9] hover:bg-slate-100 dark:hover:bg-[#283039] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<p class="text-sm font-medium">Console</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-[#9dabb9] hover:bg-slate-100 dark:hover:bg-[#283039] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">backup</span>
+<p class="text-sm font-medium">Backups</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-[#9dabb9] hover:bg-slate-100 dark:hover:bg-[#283039] cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+<p class="text-sm font-medium">Access Control</p>
+</div>
+</div>
+</div>
+<div class="mt-auto p-4 border-t border-slate-200 dark:border-[#283039]">
+<div class="bg-slate-50 dark:bg-[#161b22] rounded-lg p-3">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-bold opacity-60">RAM USAGE</span>
+<span class="text-xs font-bold text-primary">42%</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-[#2d3640] h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[42%]"></div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Workspace -->
+<main class="flex-1 flex flex-col bg-slate-50 dark:bg-[#0d1117] overflow-hidden">
+<!-- Breadcrumbs & Heading -->
+<div class="p-4 flex flex-col gap-4 border-b border-slate-200 dark:border-[#283039] bg-white dark:bg-background-dark">
+<div class="flex flex-wrap items-center gap-2 text-sm">
+<a class="text-slate-500 dark:text-[#9dabb9] hover:text-primary transition-colors" href="#">Project Alpha</a>
+<span class="text-slate-300 dark:text-[#3b4754]">/</span>
+<a class="text-slate-500 dark:text-[#9dabb9] hover:text-primary transition-colors" href="#">Redis-Cache-01</a>
+<span class="text-slate-300 dark:text-[#3b4754]">/</span>
+<span class="text-slate-900 dark:text-white font-medium mono-font">user_session_hash</span>
+</div>
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div class="flex items-start gap-3">
+<div class="mt-1 flex items-center justify-center size-8 bg-primary rounded text-white">
+<span class="material-symbols-outlined text-[20px]">grid_on</span>
+</div>
+<div class="flex flex-col">
+<h2 class="text-slate-900 dark:text-white text-2xl font-bold tracking-tight mono-font">user_session_hash</h2>
+<div class="flex items-center gap-3 mt-1">
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase">Hash</span>
+<span class="text-[#9dabb9] text-xs font-normal flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">database</span>
+                                    DB 0
+                                </span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded bg-slate-100 dark:bg-[#283039] text-slate-700 dark:text-white text-xs font-bold hover:bg-slate-200 dark:hover:bg-[#3b4754] transition-colors">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+                            Reload
+                        </button>
+<button class="flex items-center gap-2 px-4 py-1.5 rounded bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[16px]">save</span>
+                            Save Changes
+                        </button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex border-b border-slate-100 dark:border-[#283039] gap-8 -mb-4 mt-2">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-primary pb-3 pt-2" href="#">
+<p class="text-xs font-bold tracking-wide">FIELD EDITOR</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-400 dark:text-[#9dabb9] hover:text-slate-600 dark:hover:text-white pb-3 pt-2 transition-colors" href="#">
+<p class="text-xs font-bold tracking-wide uppercase">Raw View</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-400 dark:text-[#9dabb9] hover:text-slate-600 dark:hover:text-white pb-3 pt-2 transition-colors" href="#">
+<p class="text-xs font-bold tracking-wide uppercase">Access Logs</p>
+</a>
+</div>
+</div>
+<!-- Editor Toolbar -->
+<div class="px-4 py-3 flex flex-wrap items-center justify-between gap-4 bg-slate-50 dark:bg-[#101922]">
+<div class="flex items-center gap-3 flex-1 max-w-lg">
+<div class="flex w-full items-stretch rounded h-8 bg-white dark:bg-[#161b22] border border-slate-200 dark:border-[#30363d]">
+<div class="text-slate-400 flex items-center justify-center px-2">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+</div>
+<input class="form-input flex-1 border-none bg-transparent focus:ring-0 text-sm py-0" placeholder="Filter by field name..."/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded border border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] text-slate-700 dark:text-white text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#283039] transition-colors">
+<span class="material-symbols-outlined text-[18px] text-primary">add_box</span>
+                        Add Field
+                    </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded border border-slate-200 dark:border-[#30363d] bg-white dark:bg-[#161b22] text-slate-700 dark:text-white text-xs font-bold hover:bg-slate-50 dark:hover:bg-[#283039] transition-colors">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+                        Export
+                    </button>
+</div>
+</div>
+<!-- Data Grid (Hash Table) -->
+<div class="flex-1 overflow-auto custom-scrollbar px-4 pb-6">
+<div class="w-full border border-slate-200 dark:border-[#30363d] rounded-lg overflow-hidden bg-white dark:bg-[#161b22]">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 dark:bg-[#1c232b] text-slate-500 dark:text-[#9dabb9] text-[11px] font-bold uppercase tracking-wider">
+<tr>
+<th class="px-4 py-3 border-b border-slate-200 dark:border-[#30363d] w-12 text-center">#</th>
+<th class="px-4 py-3 border-b border-slate-200 dark:border-[#30363d] w-1/4">Field</th>
+<th class="px-4 py-3 border-b border-slate-200 dark:border-[#30363d]">Value</th>
+<th class="px-4 py-3 border-b border-slate-200 dark:border-[#30363d] w-24 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-[#30363d] mono-font text-xs">
+<!-- Row 1 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-[#1d242d] transition-colors">
+<td class="px-4 py-2 text-center text-slate-400 dark:text-[#5c6d7a]">1</td>
+<td class="px-4 py-2 font-semibold text-primary">session_id</td>
+<td class="px-4 py-2">
+<div class="flex items-center gap-2">
+<input class="w-full bg-transparent border-none p-1 focus:ring-1 focus:ring-primary rounded text-slate-900 dark:text-slate-100" type="text" value="9d5c2e-4f12-88a2-77bc12e"/>
+</div>
+</td>
+<td class="px-4 py-2 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit_note</span></button>
+<button class="p-1 text-slate-400 hover:text-red-500"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-[#1d242d] transition-colors">
+<td class="px-4 py-2 text-center text-slate-400 dark:text-[#5c6d7a]">2</td>
+<td class="px-4 py-2 font-semibold text-primary">user_data</td>
+<td class="px-4 py-2">
+<div class="flex items-center gap-2 w-full">
+<div class="flex-1 truncate bg-slate-100 dark:bg-[#283039] px-2 py-1 rounded text-[#9dabb9]">{"id": 402, "role": "admin", "org": "blue_ops", "pref": "dark"}</div>
+<button class="px-2 py-0.5 rounded bg-primary text-white text-[10px] font-bold">JSON</button>
+</div>
+</td>
+<td class="px-4 py-2 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit_note</span></button>
+<button class="p-1 text-slate-400 hover:text-red-500"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-[#1d242d] transition-colors">
+<td class="px-4 py-2 text-center text-slate-400 dark:text-[#5c6d7a]">3</td>
+<td class="px-4 py-2 font-semibold text-primary">last_login</td>
+<td class="px-4 py-2">
+<input class="w-full bg-transparent border-none p-1 focus:ring-1 focus:ring-primary rounded text-slate-900 dark:text-slate-100" type="text" value="1715421293"/>
+</td>
+<td class="px-4 py-2 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit_note</span></button>
+<button class="p-1 text-slate-400 hover:text-red-500"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-[#1d242d] transition-colors">
+<td class="px-4 py-2 text-center text-slate-400 dark:text-[#5c6d7a]">4</td>
+<td class="px-4 py-2 font-semibold text-primary">is_active</td>
+<td class="px-4 py-2">
+<input class="w-full bg-transparent border-none p-1 focus:ring-1 focus:ring-primary rounded text-slate-900 dark:text-slate-100" type="text" value="true"/>
+</td>
+<td class="px-4 py-2 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit_note</span></button>
+<button class="p-1 text-slate-400 hover:text-red-500"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-[#1d242d] transition-colors border-none">
+<td class="px-4 py-2 text-center text-slate-400 dark:text-[#5c6d7a]">5</td>
+<td class="px-4 py-2 font-semibold text-primary">retry_count</td>
+<td class="px-4 py-2">
+<input class="w-full bg-transparent border-none p-1 focus:ring-1 focus:ring-primary rounded text-slate-900 dark:text-slate-100" type="text" value="0"/>
+</td>
+<td class="px-4 py-2 text-right">
+<div class="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1 text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-[18px]">edit_note</span></button>
+<button class="p-1 text-slate-400 hover:text-red-500"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-3 bg-slate-50 dark:bg-[#1c232b] flex justify-center">
+<button class="text-xs font-bold text-primary flex items-center gap-2 hover:underline">
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+                            Load 50 more fields
+                        </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Right Metadata Sidebar -->
+<aside class="w-72 border-l border-slate-200 dark:border-[#283039] bg-white dark:bg-background-dark overflow-y-auto custom-scrollbar">
+<div class="p-4 flex flex-col gap-6">
+<!-- TTL Section -->
+<div>
+<h3 class="text-xs font-bold text-slate-400 dark:text-[#9dabb9] uppercase tracking-widest mb-4">Key Lifecycle</h3>
+<div class="bg-slate-50 dark:bg-[#161b22] border border-slate-200 dark:border-[#30363d] rounded-lg p-4">
+<div class="flex justify-between items-center mb-3">
+<div class="flex flex-col">
+<span class="text-xs text-slate-500 dark:text-[#9dabb9]">TTL Remaining</span>
+<span class="text-xl font-bold mono-font">02:45:12</span>
+</div>
+<button class="size-8 flex items-center justify-center rounded-lg bg-white dark:bg-[#283039] border border-slate-200 dark:border-[#30363d] text-primary">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+<div class="w-full bg-slate-200 dark:bg-[#2d3640] h-1.5 rounded-full overflow-hidden mb-2">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+<div class="flex justify-between text-[10px] font-bold text-slate-400 dark:text-[#5c6d7a]">
+<span>EXPIRES IN ~3H</span>
+<button class="text-primary hover:underline uppercase">Set Persistence</button>
+</div>
+</div>
+</div>
+<!-- Memory Usage -->
+<div>
+<h3 class="text-xs font-bold text-slate-400 dark:text-[#9dabb9] uppercase tracking-widest mb-4">Memory Stats</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-end border-b border-slate-100 dark:border-[#283039] pb-2">
+<div>
+<p class="text-[10px] text-slate-500 dark:text-[#9dabb9] uppercase font-bold">Total Size</p>
+<p class="text-lg font-bold mono-font">1.24 KB</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-[#3b4754]">data_usage</span>
+</div>
+<div class="flex justify-between items-end border-b border-slate-100 dark:border-[#283039] pb-2">
+<div>
+<p class="text-[10px] text-slate-500 dark:text-[#9dabb9] uppercase font-bold">Field Count</p>
+<p class="text-lg font-bold mono-font">32</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-[#3b4754]">list</span>
+</div>
+<div class="flex justify-between items-end border-b border-slate-100 dark:border-[#283039] pb-2">
+<div>
+<p class="text-[10px] text-slate-500 dark:text-[#9dabb9] uppercase font-bold">Encoding</p>
+<p class="text-lg font-bold mono-font">listpack</p>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-[#3b4754]">code</span>
+</div>
+</div>
+</div>
+<!-- Info Section -->
+<div>
+<h3 class="text-xs font-bold text-slate-400 dark:text-[#9dabb9] uppercase tracking-widest mb-4">Audit Info</h3>
+<div class="space-y-3">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 dark:text-[#9dabb9] font-bold uppercase">Last Accessed</span>
+<span class="text-xs font-medium">May 12, 2024 · 14:32:01</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 dark:text-[#9dabb9] font-bold uppercase">Modified By</span>
+<div class="flex items-center gap-2 mt-1">
+<div class="size-5 rounded-full bg-slate-200 dark:bg-[#30363d] overflow-hidden">
+<div class="bg-center bg-no-repeat bg-cover h-full w-full" data-alt="User avatar for developer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA1-h46Yx5rvNxBbInnVI_6G4ryNcyC-P6MnJQPb6rJSZeXYA-Vc2S2P6o2-ZdOZ2x5iGG3NuNd2p1YBk0EAv9MYsGIOiImS1G7bbV2UaZzwAuaumojbc87n492knz6GUHUB_kAsTWrQdSyrb1UJyUnxg9XucDqf0zZAHBRZnzcF-jfgJ44NSAq4MbQJVD-NNsbhp8rSnSm5AE03oAjA1LOyQRBfX7Fpbzu7cVARz2UaouRsp8kMZzJLNRikUtINy2b3HR8w0UCxfU");'></div>
+</div>
+<span class="text-xs font-medium">John Doe (SRE)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4">
+<button class="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-red-500/30 text-red-500 text-xs font-bold hover:bg-red-500/10 transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete_forever</span>
+                        Delete Redis Key
+                    </button>
+</div>
+</div>
+</aside>
+</div>
+<!-- JSON Editor Modal (Mockup overlay) -->
+<div class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+<div class="bg-white dark:bg-[#161b22] w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden border border-slate-200 dark:border-[#30363d]">
+<div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-[#30363d]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">data_object</span>
+<h3 class="font-bold">Edit JSON Value: user_data</h3>
+</div>
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-6">
+<div class="bg-slate-900 rounded-lg p-4 mono-font text-sm text-green-400 leading-relaxed min-h-[300px] border border-[#30363d]">
+<div class="flex flex-col">
+<span>{</span>
+<span class="pl-4">"id": <span class="text-blue-400">402</span>,</span>
+<span class="pl-4">"role": <span class="text-orange-400">"admin"</span>,</span>
+<span class="pl-4">"permissions": [</span>
+<span class="pl-8 text-orange-400">"read",</span>
+<span class="pl-8 text-orange-400">"write",</span>
+<span class="pl-8 text-orange-400">"execute"</span>
+<span class="pl-4">],</span>
+<span class="pl-4">"organization": <span class="text-orange-400">"blue_ops"</span>,</span>
+<span class="pl-4">"preferences": {</span>
+<span class="pl-8">"theme": <span class="text-orange-400">"dark"</span>,</span>
+<span class="pl-8">"notifications": <span class="text-blue-400">true</span></span>
+<span class="pl-4">}</span>
+<span>}</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50 dark:bg-[#0d1117] border-t border-slate-200 dark:border-[#30363d]">
+<button class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-white transition-colors">Cancel</button>
+<button class="px-6 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors">Update Field</button>
+</div>
+</div>
+</div>
+</body></html>

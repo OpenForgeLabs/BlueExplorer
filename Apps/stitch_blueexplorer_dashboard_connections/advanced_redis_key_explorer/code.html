@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Advanced Redis Key Explorer | BlueExplorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #283039;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #3f4a56;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary/30">
+<div class="flex h-screen w-full flex-col overflow-hidden">
+<!-- TopNavBar Component -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#283039] bg-background-dark px-6 py-3 shrink-0">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"></path>
+</svg>
+</div>
+<h2 class="text-white text-xl font-bold leading-tight tracking-tight">BlueExplorer</h2>
+<span class="mx-2 text-[#283039]">|</span>
+<nav class="flex items-center gap-6">
+<a class="text-white text-sm font-medium hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Explorer</a>
+<a class="text-white text-sm font-medium hover:text-primary transition-colors" href="#">Metrics</a>
+<a class="text-white text-sm font-medium hover:text-primary transition-colors" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[20px] mr-2">add</span>
+<span>Add Key</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-9 px-4 bg-[#283039] text-white text-sm font-bold hover:bg-[#3f4a56] transition-all">
+<span class="material-symbols-outlined text-[20px] mr-2">info</span>
+<span>Server Info</span>
+</button>
+<div class="h-6 w-px bg-[#283039] mx-1"></div>
+<button class="flex items-center justify-center rounded-lg h-9 w-9 bg-[#283039] text-white hover:bg-[#3f4a56] transition-all">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-9 w-9 bg-[#283039] text-white hover:bg-[#3f4a56] transition-all">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-cover border border-[#283039]" data-alt="User avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCKZrluHKbQm40Re1qsrw0akLjyrxt6bYZz5nxrFlF3scZ3pu1eQR4U0DQ9aUkca7Qyk-RF5V55qaHVHSityLioWUokrs7idD5AWPFC5E9gwfcAMHqVFDF8LquL3kbiUMQcyZLz7qj4J2zMUgp2-5MmsCAZ9TC-toR2sgP6jTmTWW0ONMJCwOc5BYJV9jm3pD5kKr8-x71885YK9wh6FbIPSVrE9cgAN9Yx9a1_0a4JLQMG1DbSw9kY2GoheIpjfYcRdmU7jJXlzjI");'></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar Component (Database Selection) -->
+<aside class="w-64 border-r border-[#283039] bg-background-dark flex flex-col justify-between p-4 shrink-0">
+<div class="flex flex-col gap-6 overflow-hidden">
+<div class="flex flex-col px-2">
+<h1 class="text-white text-sm font-bold uppercase tracking-wider opacity-60">Redis Instances</h1>
+<div class="flex items-center gap-2 mt-2">
+<span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+<p class="text-[#9dabb9] text-sm font-medium truncate">Azure Redis (PROD-01)</p>
+</div>
+</div>
+<div class="flex flex-col gap-1 overflow-y-auto custom-scrollbar pr-2">
+<div class="flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<p class="text-sm font-bold">DB 0</p>
+</div>
+<span class="text-xs font-mono bg-primary text-white px-1.5 py-0.5 rounded">1.2k</span>
+</div>
+<!-- DB Loop Simulation -->
+<div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#283039] text-[#9dabb9] cursor-pointer group transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] group-hover:text-white">database</span>
+<p class="text-sm font-medium group-hover:text-white">DB 1</p>
+</div>
+<span class="text-xs font-mono opacity-50 group-hover:opacity-100">45</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#283039] text-[#9dabb9] cursor-pointer group transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] group-hover:text-white">database</span>
+<p class="text-sm font-medium group-hover:text-white">DB 2</p>
+</div>
+<span class="text-xs font-mono opacity-50 group-hover:opacity-100">0</span>
+</div>
+<div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#283039] text-[#9dabb9] cursor-pointer group transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] group-hover:text-white">database</span>
+<p class="text-sm font-medium group-hover:text-white">DB 3</p>
+</div>
+<span class="text-xs font-mono opacity-50 group-hover:opacity-100">890</span>
+</div>
+<!-- ... and so on ... -->
+<div class="mt-4 px-3 py-2 border-t border-[#283039]">
+<p class="text-[11px] text-[#9dabb9] font-bold uppercase tracking-widest">Other Databases</p>
+</div>
+<div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[#283039] text-[#9dabb9] cursor-pointer transition-all">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<p class="text-sm">DB 4-15</p>
+</div>
+</div>
+</div>
+</div>
+<button class="flex w-full items-center justify-center rounded-lg h-10 px-4 bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-bold hover:bg-red-500 hover:text-white transition-all">
+<span class="material-symbols-outlined text-[20px] mr-2">delete_forever</span>
+<span class="truncate">Flush DB 0</span>
+</button>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Key List Column -->
+<div class="w-2/5 flex flex-col border-r border-[#283039] bg-background-dark/50">
+<!-- SearchBar & ToolBar Integrated -->
+<div class="p-4 flex flex-col gap-3 border-b border-[#283039]">
+<!-- Regex Search -->
+<label class="flex flex-col w-full">
+<div class="flex w-full items-stretch rounded-lg h-10 bg-[#1a242f] border border-[#283039] focus-within:border-primary transition-all">
+<div class="flex items-center justify-center pl-3 text-[#9dabb9]">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="flex-1 bg-transparent text-white border-none focus:ring-0 px-3 text-sm font-mono placeholder:text-[#5c6d7e]" placeholder="Search keys..." value="^user:session:.*"/>
+<div class="flex items-center px-2">
+<span class="text-[10px] bg-[#283039] text-[#9dabb9] px-1.5 py-0.5 rounded font-bold">REGEX</span>
+</div>
+<button class="flex items-center px-3 text-[#9dabb9] hover:text-white">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+</button>
+</div>
+</label>
+<!-- Filter Chips -->
+<div class="flex items-center justify-between">
+<div class="flex gap-2 flex-wrap">
+<button class="flex h-7 items-center gap-1 rounded bg-primary text-white px-3 text-[11px] font-bold">
+                                    ALL
+                                </button>
+<button class="flex h-7 items-center gap-1 rounded bg-[#283039] text-[#9dabb9] px-3 text-[11px] font-bold hover:text-white transition-all">
+                                    STRING
+                                </button>
+<button class="flex h-7 items-center gap-1 rounded bg-[#283039] text-[#9dabb9] px-3 text-[11px] font-bold hover:text-white transition-all">
+                                    HASH
+                                </button>
+<button class="flex h-7 items-center gap-1 rounded bg-[#283039] text-[#9dabb9] px-3 text-[11px] font-bold hover:text-white transition-all">
+                                    LIST
+                                </button>
+<div class="relative group">
+<button class="flex h-7 items-center gap-1 rounded bg-[#283039] text-[#9dabb9] px-2 text-[11px] font-bold">
+<span class="material-symbols-outlined text-[16px]">more_horiz</span>
+</button>
+</div>
+</div>
+<button class="flex items-center bg-primary hover:bg-primary/90 text-white rounded h-7 px-3 text-[11px] font-bold">
+<span class="material-symbols-outlined text-[16px] mr-1">sync</span>
+                                SCAN
+                            </button>
+</div>
+</div>
+<!-- List Header -->
+<div class="flex px-4 py-2 border-b border-[#283039] bg-[#1a242f]/50 text-[11px] font-bold uppercase tracking-wider text-[#9dabb9]">
+<div class="w-1/2">Key Name</div>
+<div class="w-1/6">Type</div>
+<div class="w-1/6 text-right">TTL</div>
+<div class="w-1/6 text-right">Size</div>
+</div>
+<!-- Key List -->
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<!-- List Item (Selected) -->
+<div class="flex px-4 py-3 border-b border-[#283039] bg-primary/10 hover:bg-primary/20 cursor-pointer transition-all border-l-2 border-l-primary">
+<div class="w-1/2 truncate font-mono text-sm text-white">user:session:9a8b7c</div>
+<div class="w-1/6"><span class="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30">HASH</span></div>
+<div class="w-1/6 text-right text-sm text-yellow-500">342s</div>
+<div class="w-1/6 text-right text-sm text-[#9dabb9]">1.2 KB</div>
+</div>
+<!-- List Item -->
+<div class="flex px-4 py-3 border-b border-[#283039] hover:bg-[#283039]/30 cursor-pointer transition-all">
+<div class="w-1/2 truncate font-mono text-sm text-[#9dabb9]">user:session:1d2e3f</div>
+<div class="w-1/6"><span class="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/30">STRING</span></div>
+<div class="w-1/6 text-right text-sm text-[#9dabb9]">Persist</div>
+<div class="w-1/6 text-right text-sm text-[#9dabb9]">456 B</div>
+</div>
+<!-- List Item (Expiring) -->
+<div class="flex px-4 py-3 border-b border-[#283039] hover:bg-[#283039]/30 cursor-pointer transition-all">
+<div class="w-1/2 truncate font-mono text-sm text-[#9dabb9]">cache:landing:v2</div>
+<div class="w-1/6"><span class="text-[10px] bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/30">ZSET</span></div>
+<div class="w-1/6 text-right text-sm text-red-500">5s</div>
+<div class="w-1/6 text-right text-sm text-[#9dabb9]">12 KB</div>
+</div>
+<!-- More Mock Items -->
+<div class="flex px-4 py-3 border-b border-[#283039] hover:bg-[#283039]/30 cursor-pointer transition-all">
+<div class="w-1/2 truncate font-mono text-sm text-[#9dabb9]">config:global:overrides</div>
+<div class="w-1/6"><span class="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30">HASH</span></div>
+<div class="w-1/6 text-right text-sm text-[#9dabb9]">86400s</div>
+<div class="w-1/6 text-right text-sm text-[#9dabb9]">2 KB</div>
+</div>
+</div>
+</div>
+<!-- Right Workspace Panel (Details & Editor) -->
+<div class="flex-1 flex flex-col bg-background-dark">
+<!-- Key Header & Metadata -->
+<div class="p-6 border-b border-[#283039]">
+<div class="flex items-center justify-between mb-6">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<h2 class="text-2xl font-mono font-bold">user:session:9a8b7c</h2>
+<button class="text-[#9dabb9] hover:text-white"><span class="material-symbols-outlined text-[20px]">content_copy</span></button>
+</div>
+<div class="flex items-center gap-4 mt-2">
+<div class="flex flex-col">
+<span class="text-[10px] text-[#9dabb9] font-bold uppercase tracking-widest">Type</span>
+<span class="text-sm font-semibold text-green-400">HASH</span>
+</div>
+<div class="h-8 w-px bg-[#283039]"></div>
+<div class="flex flex-col">
+<span class="text-[10px] text-[#9dabb9] font-bold uppercase tracking-widest">Memory</span>
+<span class="text-sm font-semibold">1,248 bytes</span>
+</div>
+<div class="h-8 w-px bg-[#283039]"></div>
+<div class="flex flex-col">
+<span class="text-[10px] text-[#9dabb9] font-bold uppercase tracking-widest">Encoding</span>
+<span class="text-sm font-semibold font-mono">ziplist</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center bg-[#283039] hover:bg-[#3f4a56] text-white rounded-lg px-4 h-10 font-bold transition-all">
+<span class="material-symbols-outlined text-[20px] mr-2">edit</span>
+                                    Rename
+                                </button>
+<button class="flex items-center bg-red-500 hover:bg-red-600 text-white rounded-lg px-4 h-10 font-bold transition-all">
+<span class="material-symbols-outlined text-[20px] mr-2">delete</span>
+                                    Delete
+                                </button>
+</div>
+</div>
+<!-- TTL Management Section -->
+<div class="bg-[#1a242f] rounded-xl p-4 border border-[#283039]">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-yellow-500 text-[20px]">timer</span>
+<span class="text-sm font-bold">Time To Live (TTL)</span>
+</div>
+<div class="flex items-center gap-2">
+<input class="w-16 h-8 bg-[#283039] border border-[#3f4a56] rounded text-center text-sm font-mono text-white focus:ring-primary focus:border-primary" type="text" value="342"/>
+<span class="text-sm text-[#9dabb9]">seconds</span>
+<button class="bg-primary/20 text-primary hover:bg-primary hover:text-white px-3 h-8 rounded text-xs font-bold transition-all ml-2">UPDATE</button>
+</div>
+</div>
+<input class="w-full h-1.5 bg-[#283039] rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="34"/>
+</div>
+</div>
+<!-- Editor Header / Controls -->
+<div class="flex items-center justify-between px-6 py-3 border-b border-[#283039] bg-[#1a242f]/30">
+<div class="flex items-center gap-4">
+<span class="text-xs font-bold text-[#9dabb9] uppercase tracking-widest">Values (6 fields)</span>
+<div class="flex items-center bg-[#1a242f] border border-[#283039] rounded px-2 h-7 focus-within:border-primary">
+<span class="material-symbols-outlined text-[16px] text-[#9dabb9]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-[11px] w-32" placeholder="Filter fields..." type="text"/>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center bg-primary text-white rounded px-3 h-7 text-[11px] font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[16px] mr-1">save</span>
+                                SAVE CHANGES
+                            </button>
+</div>
+</div>
+<!-- Editor / Data Grid Area -->
+<div class="flex-1 overflow-auto custom-scrollbar p-0">
+<table class="w-full text-left border-collapse">
+<thead class="sticky top-0 bg-background-dark text-[10px] font-bold text-[#5c6d7e] uppercase border-b border-[#283039]">
+<tr>
+<th class="px-6 py-3 w-1/3">Field</th>
+<th class="px-6 py-3">Value</th>
+<th class="px-6 py-3 w-16"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#283039]">
+<tr class="hover:bg-[#1a242f]/50 group transition-colors">
+<td class="px-6 py-3 font-mono text-sm text-[#137fec]">last_login</td>
+<td class="px-6 py-3 font-mono text-sm text-white">"2023-11-25T14:22:01Z"</td>
+<td class="px-6 py-3 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[#9dabb9] hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-[#1a242f]/50 group transition-colors">
+<td class="px-6 py-3 font-mono text-sm text-[#137fec]">ip_address</td>
+<td class="px-6 py-3 font-mono text-sm text-white">"192.168.1.105"</td>
+<td class="px-6 py-3 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[#9dabb9] hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-[#1a242f]/50 group transition-colors">
+<td class="px-6 py-3 font-mono text-sm text-[#137fec]">metadata</td>
+<td class="px-6 py-3">
+<div class="bg-background-dark/80 p-3 rounded border border-[#283039] font-mono text-sm text-pink-400">
+                                            {<br/>
+                                              "browser": "Chrome/119.0.0.0",<br/>
+                                              "os": "macOS Sonoma",<br/>
+                                              "dark_mode": true<br/>
+                                            }
+                                        </div>
+</td>
+<td class="px-6 py-3 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[#9dabb9] hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-[#1a242f]/50 group transition-colors">
+<td class="px-6 py-3 font-mono text-sm text-[#137fec]">status</td>
+<td class="px-6 py-3 font-mono text-sm text-white">"active"</td>
+<td class="px-6 py-3 text-right">
+<button class="opacity-0 group-hover:opacity-100 text-[#9dabb9] hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</td>
+</tr>
+<!-- Add Field Button -->
+<tr>
+<td class="px-6 py-4" colspan="3">
+<button class="flex items-center text-primary text-xs font-bold hover:underline">
+<span class="material-symbols-outlined text-[18px] mr-1">add_circle</span>
+                                            ADD NEW FIELD
+                                        </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Footer / Status -->
+<footer class="h-8 bg-[#0a1017] border-t border-[#283039] flex items-center justify-between px-4">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="size-1.5 rounded-full bg-green-500"></span>
+<span class="text-[10px] text-[#9dabb9] font-medium">redis_version: 7.0.12</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] text-[#9dabb9] font-medium uppercase tracking-widest opacity-50">Latency: 12ms</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] text-primary font-bold uppercase tracking-widest">UTF-8</span>
+<span class="text-[10px] text-[#9dabb9] font-medium">Line 1, Col 45</span>
+</div>
+</footer>
+</div>
+</main>
+</div>
+</div>
+</body></html>

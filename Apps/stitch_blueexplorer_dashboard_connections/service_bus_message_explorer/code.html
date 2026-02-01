@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Service Bus Message Explorer - BlueExplorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111418;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #283039;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4754;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white antialiased overflow-hidden h-screen">
+<div class="flex flex-col h-full">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between border-b border-solid border-[#283039] bg-[#111418] px-6 py-3 shrink-0">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-6">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z"></path>
+</svg>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">BlueExplorer</h2>
+</div>
+<div class="flex items-center gap-6">
+<a class="text-[#9dabb9] hover:text-white text-sm font-medium transition-colors" href="#">Queues</a>
+<a class="text-[#9dabb9] hover:text-white text-sm font-medium transition-colors" href="#">Topics</a>
+<a class="text-[#9dabb9] hover:text-white text-sm font-medium transition-colors" href="#">Subscriptions</a>
+<a class="text-white border-b-2 border-primary pb-0.5 text-sm font-medium" href="#">Message Explorer</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<label class="flex flex-col min-w-40 !h-9 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-[#9dabb9] flex border-none bg-[#283039] items-center justify-center pl-3">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-[#283039] text-white focus:outline-0 focus:ring-0 h-full placeholder:text-[#9dabb9] px-3 text-sm font-normal" placeholder="Search message ID..." value=""/>
+</div>
+</label>
+<div class="flex gap-2 border-l border-[#283039] pl-4">
+<button class="flex items-center justify-center rounded-lg h-9 w-9 bg-[#283039] text-white hover:bg-[#3b4754] transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-9 w-9 bg-[#283039] text-white hover:bg-[#3b4754] transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-[#111418]"></span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 ml-2" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuARQ5UaTwZJddxZvL625hcGQsW_mTqXVI-2SlPQZD9CU7jtnGI4xKtGI2xx4m6j7oF6vC9M0lLskZ48sVw0qv9bMsQkqcYLfPP5CShAbfReOGJsnNCeukKznqdMrF7785XEaRld10roMaQzI9HX1-w217ZEXMcGVrwhE3vcLRk2CqVql4tKw0IbU2QbyV4kUbh5NPiO4nWPpNb3whiOt63fn7b3QZ69r14Nli0n5SBBsdAHYJfLYAf-ZK6HeprcGMTI9nMPGsb_A5I");'></div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Panel: Table -->
+<div class="flex flex-col flex-1 border-r border-[#283039] bg-background-dark">
+<!-- ToolBar -->
+<div class="flex items-center justify-between gap-4 px-6 py-3 border-b border-[#283039] bg-[#111418]">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-4 h-9 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+                            Peek
+                        </button>
+<button class="flex items-center gap-2 px-4 h-9 rounded-lg bg-[#283039] text-white text-sm font-bold hover:bg-red-600/20 hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete_forever</span>
+                            Receive &amp; Delete
+                        </button>
+<button class="flex items-center gap-2 px-4 h-9 rounded-lg bg-[#283039] text-white text-sm font-bold hover:bg-red-600/80 transition-colors">
+<span class="material-symbols-outlined text-[20px]">layers_clear</span>
+                            Purge
+                        </button>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 bg-[#1c2127] rounded-lg p-1">
+<button class="px-3 py-1.5 text-xs font-semibold rounded bg-primary text-white">Active</button>
+<button class="px-3 py-1.5 text-xs font-semibold rounded text-[#9dabb9] hover:text-white">Dead-letter</button>
+</div>
+<button class="p-2 text-[#9dabb9] hover:text-white hover:bg-[#283039] rounded-lg transition-colors">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+</div>
+<!-- Table Content -->
+<div class="flex-1 overflow-auto p-6">
+<div class="rounded-lg border border-[#3b4754] bg-[#111418] overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#1c2127] border-bottom border-[#3b4754]">
+<th class="px-4 py-3 text-[#9dabb9] text-xs font-bold uppercase tracking-wider">Seq #</th>
+<th class="px-4 py-3 text-[#9dabb9] text-xs font-bold uppercase tracking-wider">Label / Subject</th>
+<th class="px-4 py-3 text-[#9dabb9] text-xs font-bold uppercase tracking-wider">Size</th>
+<th class="px-4 py-3 text-[#9dabb9] text-xs font-bold uppercase tracking-wider">Enqueued Time (UTC)</th>
+<th class="px-4 py-3 text-[#9dabb9] text-xs font-bold uppercase tracking-wider text-right">State</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#283039]">
+<tr class="hover:bg-primary/5 cursor-pointer bg-primary/10 border-l-4 border-l-primary">
+<td class="px-4 py-4 text-white text-sm font-medium">45021</td>
+<td class="px-4 py-4 text-[#d1d5db] text-sm">OrderProcessed</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 rounded bg-[#283039] text-[#9dabb9] text-xs">1.2 KB</span>
+</td>
+<td class="px-4 py-4 text-[#9dabb9] text-sm">2023-10-27 10:15:30</td>
+<td class="px-4 py-4 text-right">
+<span class="text-green-500 text-xs font-bold">Active</span>
+</td>
+</tr>
+<tr class="hover:bg-[#1c2127] cursor-pointer transition-colors">
+<td class="px-4 py-4 text-white text-sm font-medium">45022</td>
+<td class="px-4 py-4 text-[#d1d5db] text-sm">PaymentFailed</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 rounded bg-[#283039] text-[#9dabb9] text-xs">0.8 KB</span>
+</td>
+<td class="px-4 py-4 text-[#9dabb9] text-sm">2023-10-27 10:16:12</td>
+<td class="px-4 py-4 text-right">
+<span class="text-green-500 text-xs font-bold">Active</span>
+</td>
+</tr>
+<tr class="hover:bg-[#1c2127] cursor-pointer transition-colors">
+<td class="px-4 py-4 text-white text-sm font-medium">45023</td>
+<td class="px-4 py-4 text-[#d1d5db] text-sm">ShipmentUpdate</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 rounded bg-[#283039] text-[#9dabb9] text-xs">2.1 KB</span>
+</td>
+<td class="px-4 py-4 text-[#9dabb9] text-sm">2023-10-27 10:18:05</td>
+<td class="px-4 py-4 text-right">
+<span class="text-green-500 text-xs font-bold">Active</span>
+</td>
+</tr>
+<tr class="hover:bg-[#1c2127] cursor-pointer transition-colors">
+<td class="px-4 py-4 text-white text-sm font-medium">45024</td>
+<td class="px-4 py-4 text-[#d1d5db] text-sm">OrderProcessed</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 rounded bg-[#283039] text-[#9dabb9] text-xs">1.1 KB</span>
+</td>
+<td class="px-4 py-4 text-[#9dabb9] text-sm">2023-10-27 10:19:44</td>
+<td class="px-4 py-4 text-right">
+<span class="text-green-500 text-xs font-bold">Active</span>
+</td>
+</tr>
+<tr class="hover:bg-[#1c2127] cursor-pointer transition-colors">
+<td class="px-4 py-4 text-white text-sm font-medium">45025</td>
+<td class="px-4 py-4 text-[#d1d5db] text-sm">AuthSuccess</td>
+<td class="px-4 py-4">
+<span class="px-2 py-1 rounded bg-[#283039] text-[#9dabb9] text-xs">0.4 KB</span>
+</td>
+<td class="px-4 py-4 text-[#9dabb9] text-sm">2023-10-27 10:21:10</td>
+<td class="px-4 py-4 text-right">
+<span class="text-green-500 text-xs font-bold">Active</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Panel: Message Details -->
+<div class="w-[450px] bg-[#111418] flex flex-col shrink-0">
+<div class="p-6 border-b border-[#283039]">
+<div class="flex items-center justify-between mb-2">
+<h1 class="text-white text-xl font-bold leading-normal">Message Details</h1>
+<button class="text-[#9dabb9] hover:text-white">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<p class="text-[#9dabb9] text-sm font-normal flex items-center gap-2">
+<span class="px-1.5 py-0.5 rounded bg-[#283039] text-primary text-[10px] font-bold uppercase">Sequence</span>
+                        45021
+                    </p>
+</div>
+<!-- Tabs -->
+<div class="flex border-b border-[#283039]">
+<button class="flex-1 px-4 py-3 text-sm font-bold text-white border-b-2 border-primary bg-primary/5">
+                        Message Body
+                    </button>
+<button class="flex-1 px-4 py-3 text-sm font-medium text-[#9dabb9] hover:text-white transition-colors">
+                        Properties
+                    </button>
+</div>
+<!-- Scrollable Detail Content -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- Syntax Highlighted Body -->
+<div class="rounded-lg bg-[#0a0c10] border border-[#283039] p-4 font-mono text-sm overflow-hidden">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[#4f5b66] text-xs">application/json</span>
+<button class="text-[#9dabb9] hover:text-primary flex items-center gap-1 text-xs">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+                                Copy
+                            </button>
+</div>
+<pre class="text-[#9ecbff] overflow-x-auto"><code>{
+  <span class="text-[#c3e88d]">"orderId"</span>: <span class="text-[#f78c6c]">"ORD-7721-B"</span>,
+  <span class="text-[#c3e88d]">"customer"</span>: {
+    <span class="text-[#c3e88d]">"id"</span>: <span class="text-[#f78c6c]">"USR-102"</span>,
+    <span class="text-[#c3e88d]">"email"</span>: <span class="text-[#f78c6c]">"jane.doe@example.com"</span>
+  },
+  <span class="text-[#c3e88d]">"items"</span>: [
+    { <span class="text-[#c3e88d]">"sku"</span>: <span class="text-[#f78c6c]">"WIDG-01"</span>, <span class="text-[#c3e88d]">"qty"</span>: <span class="text-[#f78c6c]">2</span> }
+  ],
+  <span class="text-[#c3e88d]">"status"</span>: <span class="text-[#f78c6c]">"PROCESSED"</span>,
+  <span class="text-[#c3e88d]">"timestamp"</span>: <span class="text-[#f78c6c]">"2023-10-27T10:15:30Z"</span>
+}</code></pre>
+</div>
+<!-- System Properties Sample (Hidden when in Body tab normally, but shown for richness here) -->
+<div class="space-y-3">
+<h3 class="text-[#9dabb9] text-xs font-bold uppercase tracking-widest mt-6 mb-2">System Properties</h3>
+<div class="grid grid-cols-2 gap-y-3 gap-x-4 bg-[#1c2127] p-3 rounded-lg border border-[#283039]">
+<div>
+<p class="text-[#9dabb9] text-[10px] uppercase font-bold">Message ID</p>
+<p class="text-white text-xs truncate">a873b2-99c1-450b-8e21</p>
+</div>
+<div>
+<p class="text-[#9dabb9] text-[10px] uppercase font-bold">Correlation ID</p>
+<p class="text-white text-xs">NONE</p>
+</div>
+<div>
+<p class="text-[#9dabb9] text-[10px] uppercase font-bold">Delivery Count</p>
+<p class="text-white text-xs">1</p>
+</div>
+<div>
+<p class="text-[#9dabb9] text-[10px] uppercase font-bold">Size</p>
+<p class="text-white text-xs">1,248 bytes</p>
+</div>
+</div>
+</div>
+<div class="space-y-3">
+<h3 class="text-[#9dabb9] text-xs font-bold uppercase tracking-widest mt-4 mb-2">Custom Properties</h3>
+<div class="bg-[#1c2127] rounded-lg border border-[#283039] divide-y divide-[#283039]">
+<div class="flex justify-between p-3">
+<span class="text-[#9dabb9] text-xs font-mono italic">x-origin-service</span>
+<span class="text-white text-xs font-medium">checkout-api</span>
+</div>
+<div class="flex justify-between p-3">
+<span class="text-[#9dabb9] text-xs font-mono italic">x-region</span>
+<span class="text-white text-xs font-medium">us-east-1</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Detail Actions -->
+<div class="p-6 bg-[#111418] border-t border-[#283039] grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 h-10 px-4 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Download
+                    </button>
+<button class="flex items-center justify-center gap-2 h-10 px-4 bg-[#283039] text-white text-sm font-bold rounded-lg hover:bg-[#3b4754] transition-all">
+<span class="material-symbols-outlined text-[18px]">replay</span>
+                        Resubmit
+                    </button>
+</div>
+</div>
+</main>
+<!-- Footer / Status Bar -->
+<footer class="h-8 bg-[#0a0c10] border-t border-[#283039] px-4 flex items-center justify-between text-[11px] text-[#4f5b66]">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5 text-green-500">
+<span class="size-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Connected to Namespace: PROD-SB-EAST
+                </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">history</span>
+                    Last Refresh: 10:45:12 AM
+                </div>
+</div>
+<div class="flex items-center gap-4 uppercase font-bold tracking-tighter">
+<span>UTF-8</span>
+<span>Messages: 1,402</span>
+<span class="text-primary">BlueExplorer v2.4.0</span>
+</div>
+</footer>
+</div>
+</body></html>

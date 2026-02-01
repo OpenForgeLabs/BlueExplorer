@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Redis Insights &amp; Performance | BlueExplorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-gradient {
+            background: linear-gradient(180deg, rgba(19, 127, 236, 0.2) 0%, rgba(19, 127, 236, 0) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation Bar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="bg-primary rounded-lg p-1.5 text-white">
+<span class="material-symbols-outlined text-2xl">database</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-none tracking-tight">BlueExplorer</h1>
+<p class="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">SRE Console</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary group" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Insights</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="text-sm font-medium">Keyspace Browser</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<span class="text-sm font-medium">CLI Console</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span class="text-sm font-medium">Slow Logs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">Clients</span>
+</a>
+<div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuration</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Instance Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">cleaning_services</span>
+                Flush Cache
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Top Navigation Bar -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-sm sticky top-0 z-10 px-8 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">cloud</span>
+<h2 class="text-base font-bold tracking-tight">Azure Redis: Production-01</h2>
+</div>
+<div class="h-4 w-[1px] bg-slate-200 dark:bg-slate-800"></div>
+<div class="flex gap-4">
+<a class="text-sm font-medium text-primary" href="#">Overview</a>
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Metrics</a>
+<a class="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors" href="#">Alerts</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg leading-none">search</span>
+<input class="bg-slate-100 dark:bg-slate-900 border-none rounded-lg pl-10 pr-4 py-1.5 text-sm w-64 focus:ring-1 focus:ring-primary" placeholder="Search keys or logs..." type="text"/>
+</div>
+<button class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<div class="h-8 w-8 rounded-full bg-cover bg-center border border-slate-200 dark:border-slate-700" data-alt="User avatar profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6E_KWBas6SUUBd-YxdnG8Y9UZuL_QCunSkh1R--PXNDavHIT0nazNkQyeLhhpg9u2EeqTYwThbLIIcT7KW-meaSkPtgJ7PvlDG0pt7gdxReYmZNz25wveIVHI8Gaq9tqrCfXlOMAuq6Mnq7xnitLb8DhfBkQnmVCtayGV05Xjx5hcHLFniH0v9Eak_IifJefAKSy43-B3jr2XAoOD428VKLSVS2DoHWXCWgqMwptj6nLMO0yY2gC1KLocelNznhmbnQx15FUoi6Q')"></div>
+</div>
+</header>
+<div class="p-8">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-xs font-medium text-slate-500 mb-6">
+<a class="hover:text-primary" href="#">BlueExplorer</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary" href="#">Azure Cache</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-300">Production-01</span>
+</nav>
+<!-- Status Bar Stats -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Status</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-bold text-emerald-500 flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Healthy
+                        </h3>
+<span class="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">Online</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Uptime</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-bold">14d 06h 22m</h3>
+<span class="material-symbols-outlined text-slate-400">timer</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Engine Version</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-bold">7.0.12</h3>
+<span class="text-xs text-slate-400">v7-LTS</span>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+<p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Connected Clients</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-bold">1,248</h3>
+<span class="text-xs font-medium text-red-400">+12% peak</span>
+</div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<!-- Memory Tile -->
+<div class="lg:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-bold text-sm">Memory Usage (RSS vs Used)</h4>
+<span class="material-symbols-outlined text-slate-400 text-xl">memory</span>
+</div>
+<div class="flex flex-col gap-6">
+<div>
+<div class="flex justify-between text-xs mb-2">
+<span class="text-slate-500">Used Memory</span>
+<span class="font-mono font-bold">4.2 GB / 8 GB</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 52.5%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs mb-2">
+<span class="text-slate-500">Resident Set Size (RSS)</span>
+<span class="font-mono font-bold">6.1 GB</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+<div class="bg-indigo-500 h-full rounded-full" style="width: 76%"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mt-2">
+<div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+<p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Fragmentation</p>
+<p class="text-lg font-bold">1.45</p>
+</div>
+<div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+<p class="text-[10px] uppercase font-bold text-slate-500 mb-1">Evicted Keys</p>
+<p class="text-lg font-bold text-amber-500">2.1k</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Operations Tile (Chart) -->
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 overflow-hidden relative">
+<div class="flex items-center justify-between mb-6 relative z-10">
+<div>
+<h4 class="font-bold text-sm">Throughput (Ops/sec)</h4>
+<p class="text-xs text-slate-500">Real-time performance window (60s)</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-xs font-bold px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded">1m</button>
+<button class="text-xs font-medium px-3 py-1 text-slate-400">5m</button>
+<button class="text-xs font-medium px-3 py-1 text-slate-400">1h</button>
+</div>
+</div>
+<!-- Simplified Visual Representation of a chart -->
+<div class="h-40 flex items-end gap-1 relative">
+<div class="absolute inset-0 flex flex-col justify-between py-2 pointer-events-none">
+<div class="w-full border-t border-slate-100 dark:border-slate-800"></div>
+<div class="w-full border-t border-slate-100 dark:border-slate-800"></div>
+<div class="w-full border-t border-slate-100 dark:border-slate-800"></div>
+</div>
+<!-- Mock bars for "Area Chart" look -->
+<div class="flex-1 bg-primary/20 rounded-t-sm" style="height: 40%"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm" style="height: 45%"></div>
+<div class="flex-1 bg-primary/30 rounded-t-sm" style="height: 60%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm border-t-2 border-primary" style="height: 75%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm border-t-2 border-primary" style="height: 70%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm border-t-2 border-primary" style="height: 85%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm border-t-2 border-primary" style="height: 95%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm border-t-2 border-primary" style="height: 80%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm border-t-2 border-primary" style="height: 65%"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm" style="height: 50%"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm" style="height: 45%"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm" style="height: 30%"></div>
+<div class="flex-1 bg-primary/20 rounded-t-sm" style="height: 40%"></div>
+<div class="flex-1 bg-primary/30 rounded-t-sm border-t-2 border-primary" style="height: 60%"></div>
+</div>
+<div class="mt-4 flex justify-between">
+<div class="flex gap-8">
+<div>
+<p class="text-[10px] font-bold text-slate-500 uppercase">Peak</p>
+<p class="text-lg font-bold">12.4k <span class="text-xs text-slate-400 font-normal">ops/s</span></p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-slate-500 uppercase">Avg</p>
+<p class="text-lg font-bold">8.1k <span class="text-xs text-slate-400 font-normal">ops/s</span></p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-bold text-slate-500 uppercase">Hits/Misses Ratio</p>
+<p class="text-lg font-bold text-emerald-500">98.2%</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Slow Logs Section -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+<div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<div>
+<h4 class="font-bold text-base">Performance Bottlenecks: Slow Logs</h4>
+<p class="text-xs text-slate-500">Displaying operations exceeding 10,000µs latency</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-sm">download</span>
+                            Export CSV
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 text-[11px] uppercase tracking-wider font-bold text-slate-500">
+<th class="px-6 py-3">Timestamp</th>
+<th class="px-6 py-3">Duration (µs)</th>
+<th class="px-6 py-3">Command</th>
+<th class="px-6 py-3">Key Pattern</th>
+<th class="px-6 py-3 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-xs font-mono">2023-11-24 14:22:01.03</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-red-500">42,000</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono font-bold">KEYS</span>
+</td>
+<td class="px-6 py-4 text-sm font-mono text-slate-400">user:session:active:*</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary text-sm font-bold hover:underline">Details</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-xs font-mono">2023-11-24 14:21:45.12</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-amber-500">18,240</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono font-bold">SMEMBERS</span>
+</td>
+<td class="px-6 py-4 text-sm font-mono text-slate-400">global:blacklist:ips</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary text-sm font-bold hover:underline">Details</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-xs font-mono">2023-11-24 14:19:10.88</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-amber-500">12,100</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono font-bold">HGETALL</span>
+</td>
+<td class="px-6 py-4 text-sm font-mono text-slate-400">order:994851:metadata</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary text-sm font-bold hover:underline">Details</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<td class="px-6 py-4 text-xs font-mono">2023-11-24 14:18:22.01</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-red-500">88,400</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-xs font-mono font-bold">FLUSHDB</span>
+</td>
+<td class="px-6 py-4 text-sm font-mono text-slate-400">db:2</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary text-sm font-bold hover:underline">Details</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-200 dark:border-slate-800 text-center">
+<button class="text-xs font-bold text-slate-500 hover:text-primary transition-colors uppercase tracking-widest">Load More Entries</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

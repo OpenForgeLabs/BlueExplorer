@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BlueExplorer - New Subscription Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center p-4">
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-0"></div>
+<!-- New Subscription Modal -->
+<div class="relative z-10 w-full max-w-[640px] bg-white dark:bg-[#1c2127] rounded-xl shadow-2xl border border-slate-200 dark:border-[#3b4754] flex flex-col overflow-hidden">
+<!-- Modal Header -->
+<div class="flex flex-col gap-1 p-6 border-b border-slate-200 dark:border-[#3b4754]">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Create New Subscription</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-xs font-semibold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">Topic</span>
+<p class="text-slate-500 dark:text-[#9dabb9] text-sm font-medium">orders-v1-prod-westus</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<!-- Modal Body / Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Basic Configuration Section -->
+<div class="space-y-4">
+<div class="flex flex-col gap-4">
+<!-- Subscription Name -->
+<label class="flex flex-col gap-2">
+<div class="flex items-center gap-1.5">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Subscription Name</span>
+<span class="material-symbols-outlined text-sm text-slate-400 cursor-help" title="Unique identifier for this subscription">info</span>
+</div>
+<input class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-[#3b4754] bg-white dark:bg-[#111418] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-[#9dabb9] focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" placeholder="e.g. sub-billing-processor" type="text"/>
+</label>
+<!-- Max Delivery Count -->
+<label class="flex flex-col gap-2 max-w-[240px]">
+<div class="flex items-center gap-1.5">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Max Delivery Count</span>
+<span class="material-symbols-outlined text-sm text-slate-400 cursor-help" title="Number of delivery attempts before message is dead-lettered">info</span>
+</div>
+<div class="relative">
+<input class="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-[#3b4754] bg-white dark:bg-[#111418] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" type="number" value="10"/>
+<div class="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-0.5">
+<span class="material-symbols-outlined text-xs text-slate-400 cursor-pointer hover:text-primary">expand_less</span>
+<span class="material-symbols-outlined text-xs text-slate-400 cursor-pointer hover:text-primary">expand_more</span>
+</div>
+</div>
+</label>
+</div>
+</div>
+<!-- Filter Rules Section -->
+<div class="space-y-4 pt-4 border-t border-slate-200 dark:border-[#3b4754]">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Filter Rules</h3>
+<button class="flex items-center gap-1 text-primary text-xs font-semibold hover:underline">
+<span class="material-symbols-outlined text-sm">menu_book</span>
+                        Documentation
+                    </button>
+</div>
+<!-- Segmented Control -->
+<div class="flex p-1 bg-slate-100 dark:bg-[#283039] rounded-lg">
+<label class="flex-1 flex items-center justify-center py-2 px-4 rounded-md cursor-pointer text-sm font-medium transition-all text-slate-500 dark:text-[#9dabb9] has-[:checked]:bg-white dark:has-[:checked]:bg-[#111418] has-[:checked]:text-primary dark:has-[:checked]:text-white has-[:checked]:shadow-sm">
+<input class="hidden" name="filterType" type="radio" value="matchAll"/>
+                        Match All (Default)
+                    </label>
+<label class="flex-1 flex items-center justify-center py-2 px-4 rounded-md cursor-pointer text-sm font-medium transition-all text-slate-500 dark:text-[#9dabb9] has-[:checked]:bg-white dark:has-[:checked]:bg-[#111418] has-[:checked]:text-primary dark:has-[:checked]:text-white has-[:checked]:shadow-sm">
+<input checked="" class="hidden" name="filterType" type="radio" value="sqlFilter"/>
+                        SQL Filter
+                    </label>
+</div>
+<!-- Code Editor Area (SQL Filter) -->
+<div class="flex flex-col gap-2">
+<div class="relative group">
+<div class="absolute top-3 left-4 flex flex-col gap-1 select-none pointer-events-none text-slate-600 dark:text-slate-500 text-xs code-font">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+</div>
+<textarea class="w-full min-h-[140px] pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-[#3b4754] bg-white dark:bg-[#111418] text-slate-900 dark:text-white code-font text-sm resize-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none leading-relaxed" placeholder="-- Enter SQL filter logic here">sys.Label = 'marketing'
+AND user.region = 'US'
+AND sys.Size &gt; 1024</textarea>
+</div>
+<div class="flex items-center gap-2 px-1">
+<span class="text-[11px] font-medium text-slate-500 dark:text-[#9dabb9]">Example syntax:</span>
+<code class="text-[11px] bg-slate-100 dark:bg-[#283039] px-2 py-0.5 rounded text-primary">sys.Priority &gt; 5</code>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="flex items-center justify-end gap-3 p-6 bg-slate-50 dark:bg-[#1c2127] border-t border-slate-200 dark:border-[#3b4754]">
+<button class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 dark:text-[#9dabb9] hover:bg-slate-200 dark:hover:bg-[#283039] transition-colors">
+                Cancel
+            </button>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold shadow-lg shadow-primary/20 transition-all">
+<span>Create Subscription</span>
+<span class="material-symbols-outlined text-lg">rocket_launch</span>
+</button>
+</div>
+</div>
+</body></html>

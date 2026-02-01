@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Docker",
+    "useManagedIdentity": false,
+    "connectionString": "Endpoint=sb://localhost:5672;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;",
+    "keyVault": null
+  }
+]
