@@ -4,15 +4,15 @@ import { useState } from "react";
 import { ConfirmActionModal } from "@/components/modals/ConfirmActionModal";
 import { ResourceSummaryBase } from "@/lib/types";
 
-type ResourceDeleteActionProps = {
-  resource: ResourceSummaryBase;
-  onDelete: (resource: ResourceSummaryBase) => Promise<void>;
+type ResourceDeleteActionProps<T extends ResourceSummaryBase> = {
+  resource: T;
+  onDelete: (resource: T) => Promise<void>;
 };
 
-export function ResourceDeleteAction({
+export function ResourceDeleteAction<T extends ResourceSummaryBase>({
   resource,
   onDelete,
-}: ResourceDeleteActionProps) {
+}: ResourceDeleteActionProps<T>) {
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
