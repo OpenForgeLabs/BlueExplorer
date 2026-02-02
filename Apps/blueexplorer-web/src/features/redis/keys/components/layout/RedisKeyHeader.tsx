@@ -65,9 +65,9 @@ export function RedisKeyHeader({
 
   return (
     <div className="border-b border-border-dark p-6">
-      <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="group min-w-0 flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-nowrap items-center justify-between gap-3">
+          <div className="group flex min-w-0 items-center gap-2">
             {isRenaming ? (
               <div className="flex items-center gap-2">
                 <input
@@ -86,7 +86,7 @@ export function RedisKeyHeader({
                 </button>
               </div>
             ) : (
-              <h3 className="text-xl font-bold text-slate-100">
+              <h3 className="min-w-0 truncate text-lg font-bold leading-tight text-slate-100">
                 {selectedKey ?? "Select a key"}
               </h3>
             )}
@@ -118,86 +118,86 @@ export function RedisKeyHeader({
               </button>
             )}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-400">
-            <div>
-              <span className="block uppercase tracking-widest">Type</span>
-              <span className="text-sm font-semibold text-emerald-400">
-                {selectedType ?? "unknown"}
-              </span>
-            </div>
-            <div className="h-8 w-px bg-border-dark"></div>
-            <div>
-              <span className="block uppercase tracking-widest">Memory</span>
-              <span className="text-sm font-semibold">
-                {selectedValue ? formatSize(selectedValue) : "-"}
-              </span>
-            </div>
-            <div className="h-8 w-px bg-border-dark"></div>
-            <div>
-              <span className="block uppercase tracking-widest">Encoding</span>
-              <span className="text-sm font-semibold font-mono">-</span>
-            </div>
-          </div>
-          <p className="w-full text-xs text-slate-500">{typeDescription}</p>
-        </div>
-        <div className="flex w-full flex-col items-end gap-3 lg:w-auto">
-          <div className="flex gap-2">
+
+          <div className="ml-auto flex flex-nowrap items-center gap-2">
             <button
-              className="flex items-center gap-1 rounded border border-border-dark bg-surface-dark px-3 py-2 text-xs font-bold uppercase text-slate-200 hover:border-primary"
+              className="flex h-9 w-9 items-center justify-center rounded border border-border-dark bg-surface-dark text-slate-200 hover:border-primary"
               type="button"
               onClick={onRefreshValue}
+              title="Refresh"
             >
               <span className="material-symbols-outlined text-[16px]">
                 refresh
               </span>
-              Refresh
             </button>
             <button
-              className="flex items-center gap-1 rounded bg-primary px-3 py-2 text-xs font-bold uppercase text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-9 w-9 items-center justify-center rounded bg-primary text-white disabled:cursor-not-allowed disabled:opacity-60"
               type="button"
               disabled={isSaving || !canSave}
               onClick={onSave}
+              title={isSaving ? "Saving" : "Save changes"}
             >
               <span className="material-symbols-outlined text-[16px]">
                 {isSaving ? "hourglass_top" : "save"}
               </span>
-              {isSaving ? "Saving" : "Save Changes"}
             </button>
             <button
-              className="flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-300 transition-colors hover:bg-rose-500 hover:text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/40 bg-rose-500/10 text-rose-300 transition-colors hover:bg-rose-500 hover:text-white"
               type="button"
               onClick={onDelete}
+              title="Delete"
             >
               <span className="material-symbols-outlined text-[18px]">
                 delete
               </span>
-              Delete
             </button>
-          </div>
-          {saveError && (
-            <p className="text-right text-[11px] text-rose-300">
-              {saveError}
-            </p>
-          )}
-          <div className="w-full rounded-xl border border-border-dark bg-surface-dark/60 px-3 py-2">
-            <div className="flex items-center justify-between text-xs text-slate-400">
-              <span className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-                <span className="material-symbols-outlined text-[16px] text-amber-400">
-                  timer
-                </span>
+            <div className="flex h-9 items-center gap-2 rounded-lg border border-border-dark bg-surface-dark/60 px-3 text-[11px] text-slate-300">
+              <span className="material-symbols-outlined text-[16px] text-amber-400">
+                timer
+              </span>
+              <span className="uppercase tracking-widest text-slate-400">
                 TTL
               </span>
               <input
-                className="h-7 w-14 rounded border border-border-dark bg-background px-2 text-center text-xs font-mono text-slate-100"
+                className="h-7 w-12 rounded border border-border-dark bg-background px-2 text-center text-xs font-mono text-slate-100"
                 type="text"
                 value={ttlValue}
                 onChange={(event) => onTtlChange(event.target.value)}
                 placeholder="-"
               />
             </div>
-            {ttlError && (
-              <p className="mt-2 text-[11px] text-rose-300">{ttlError}</p>
-            )}
+          </div>
+        </div>
+
+        {saveError && (
+          <p className="text-right text-[11px] text-rose-300">{saveError}</p>
+        )}
+
+        {ttlError && (
+          <p className="text-right text-[11px] text-rose-300">{ttlError}</p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+          <div>
+            <span className="block uppercase tracking-widest">Type</span>
+            <span
+              className="text-sm font-semibold text-emerald-400"
+              title={typeDescription}
+            >
+              {selectedType ?? "unknown"}
+            </span>
+          </div>
+          <div className="h-8 w-px bg-border-dark"></div>
+          <div>
+            <span className="block uppercase tracking-widest">Memory</span>
+            <span className="text-sm font-semibold">
+              {selectedValue ? formatSize(selectedValue) : "-"}
+            </span>
+          </div>
+          <div className="h-8 w-px bg-border-dark"></div>
+          <div>
+            <span className="block uppercase tracking-widest">Encoding</span>
+            <span className="text-sm font-semibold font-mono">-</span>
           </div>
         </div>
       </div>

@@ -69,7 +69,7 @@ export const StreamValueEditor = forwardRef<
   };
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between border-b border-border-dark bg-surface-dark/50 px-6 py-3">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-widest text-slate-400">
           <span>Entries</span>

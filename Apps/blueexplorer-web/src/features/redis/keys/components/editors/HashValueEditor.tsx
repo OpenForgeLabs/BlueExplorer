@@ -99,7 +99,7 @@ export const HashValueEditor = forwardRef<
   };
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between border-b border-border-dark bg-surface-dark/50 px-6 py-3">
         <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-widest text-slate-400">
           <span>Values</span>
@@ -146,39 +146,46 @@ export const HashValueEditor = forwardRef<
 
       <div className="custom-scrollbar flex-1 overflow-auto">
         {view === "table" ? (
-          <table className="w-full text-left text-sm">
-            <thead className="sticky top-0 border-b border-border-dark bg-background text-[10px] font-bold uppercase tracking-wider text-slate-500">
-              <tr>
-                <th className="px-6 py-3 w-1/3">Field</th>
-                <th className="px-6 py-3">Value</th>
-                <th className="px-6 py-3 w-16"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-dark">
-              <HashTableEditor
-                rows={rows}
-                onChange={(index, key, value) => {
-                  lastEditSource.current = "table";
-                  setRows((previous) =>
-                    previous.map((row, idx) =>
-                      idx === index ? { ...row, [key]: value } : row,
-                    ),
-                  );
-                }}
-                onRemove={(index) =>
-                  setRows((previous) =>
-                    previous.filter((_, idx) => idx !== index),
-                  )
-                }
-                onAdd={() =>
-                  setRows((previous) => [
-                    ...previous,
-                    { id: `row-${Date.now()}`, field: "", value: "" },
-                  ])
-                }
-              />
-            </tbody>
-          </table>
+          <div className="flex flex-col gap-6">
+            <div>
+              <div className="px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Entries
+              </div>
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 border-b border-border-dark bg-background text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  <tr>
+                    <th className="px-6 py-3 w-1/3">Field</th>
+                    <th className="px-6 py-3">Value</th>
+                    <th className="px-6 py-3 w-16"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-dark">
+                  <HashTableEditor
+                    rows={rows}
+                    onChange={(index, key, value) => {
+                      lastEditSource.current = "table";
+                      setRows((previous) =>
+                        previous.map((row, idx) =>
+                          idx === index ? { ...row, [key]: value } : row,
+                        ),
+                      );
+                    }}
+                    onRemove={(index) =>
+                      setRows((previous) =>
+                        previous.filter((_, idx) => idx !== index),
+                      )
+                    }
+                    onAdd={() =>
+                      setRows((previous) => [
+                        ...previous,
+                        { id: `row-${Date.now()}`, field: "", value: "" },
+                      ])
+                    }
+                  />
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <div className="p-6">
             <textarea

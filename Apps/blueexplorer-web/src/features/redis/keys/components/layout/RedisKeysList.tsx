@@ -36,7 +36,7 @@ export function RedisKeysList({
   typeBadgeStyles,
 }: RedisKeysListProps) {
   return (
-    <div className="flex w-2/5 flex-col border-r border-border-dark">
+    <div className="flex min-h-0 w-full flex-1 flex-col border-b border-border-dark lg:w-[34%] lg:border-b-0 lg:border-r">
       <div className="flex items-center border-b border-border-dark bg-surface-dark/50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
         <div className="w-1/2">Key Name</div>
         <div className="w-1/6">Type</div>

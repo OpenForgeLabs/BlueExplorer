@@ -112,7 +112,7 @@ export function DashboardScreen() {
   }, [normalizedResources]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-background/50 px-6 pb-6 lg:px-8 lg:pb-8">
+    <div className="flex-1 overflow-y-auto bg-background/50 px-4 pb-6 sm:px-6 lg:px-8 lg:pb-8">
           <div className="mb-2 flex flex-wrap items-center justify-end gap-3">
             <div className="flex items-center gap-4 text-xs font-medium uppercase tracking-wider">
               <span className="flex items-center gap-1.5 text-emerald-500">

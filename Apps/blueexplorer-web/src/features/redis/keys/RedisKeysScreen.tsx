@@ -284,7 +284,7 @@ export function RedisKeysScreen({ connectionName }: RedisKeysScreenProps) {
   const selectedType = selectedInfo?.type ?? "unknown";
 
   return (
-    <div className="flex-1 overflow-hidden bg-background/50 px-6 pb-6 lg:px-8 lg:pb-8">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background/50 px-4 pb-6 sm:px-6 lg:px-8 lg:pb-8">
       <RedisKeysHeader
         connectionName={connectionName}
         isLoading={isLoading}
@@ -292,7 +292,7 @@ export function RedisKeysScreen({ connectionName }: RedisKeysScreenProps) {
         onServerInfo={() => setServerInfoOpen(true)}
       />
 
-      <div className="flex h-[calc(100vh-220px)] min-h-[560px] gap-4 overflow-hidden">
+      <div className="flex max-h-[calc(100dvh-160px)] min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
         <RedisDbSidebar
           connectionName={connectionName}
           db={db}
@@ -306,7 +306,7 @@ export function RedisKeysScreen({ connectionName }: RedisKeysScreenProps) {
           onFlushDb={() => setFlushModalOpen(true)}
         />
 
-        <main className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border-dark bg-surface-dark/30">
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border-dark bg-surface-dark/30">
           <RedisKeysFilters
             pattern={pattern}
             filterType={filterType}
@@ -323,7 +323,7 @@ export function RedisKeysScreen({ connectionName }: RedisKeysScreenProps) {
             error={error}
             empty={!isLoading && filteredKeys.length === 0}
           >
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
               <RedisKeysList
                 keys={filteredKeys}
                 selectedKey={selectedKey}
@@ -341,55 +341,57 @@ export function RedisKeysScreen({ connectionName }: RedisKeysScreenProps) {
                 typeBadgeStyles={TYPE_BADGE_STYLES}
               />
 
-              <div className="flex flex-1 flex-col">
-                <RedisKeyHeader
-                  selectedKey={selectedKey}
-                  selectedType={selectedType}
-                  selectedValue={selectedValue?.value}
-                  nameDraft={nameDraft}
-                  isRenaming={isRenaming}
-                  isSaving={isSaving}
-                  canSave={
-                    !!selectedInfo &&
-                    selectedInfo.type !== "unknown" &&
-                    !hasEditorErrors
-                  }
-                  ttlValue={ttlDraft}
-                  ttlError={ttlError}
-                  saveError={saveError}
-                  typeDescription={TYPE_DESCRIPTIONS[selectedType]}
-                  isLocalKey={isLocalKey}
-                  onRenameToggle={() => setIsRenaming(true)}
-                  onRenameConfirm={handleRenameConfirm}
-                  onNameChange={setNameDraft}
-                  onTtlChange={setTtlDraft}
-                  onRefreshValue={() => {
-                    if (selectedKey && selectedInfo) {
-                      refreshKeyValue(
-                        selectedKey,
-                        selectedInfo.type,
-                        db === "" ? undefined : db,
-                      );
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <RedisKeyHeader
+                    selectedKey={selectedKey}
+                    selectedType={selectedType}
+                    selectedValue={selectedValue?.value}
+                    nameDraft={nameDraft}
+                    isRenaming={isRenaming}
+                    isSaving={isSaving}
+                    canSave={
+                      !!selectedInfo &&
+                      selectedInfo.type !== "unknown" &&
+                      !hasEditorErrors
                     }
-                  }}
-                  onSave={handleSave}
-                  onDelete={() => setDeleteModalOpen(true)}
-                  onTypeChange={handleNewKeyTypeChange}
-                />
+                    ttlValue={ttlDraft}
+                    ttlError={ttlError}
+                    saveError={saveError}
+                    typeDescription={TYPE_DESCRIPTIONS[selectedType]}
+                    isLocalKey={isLocalKey}
+                    onRenameToggle={() => setIsRenaming(true)}
+                    onRenameConfirm={handleRenameConfirm}
+                    onNameChange={setNameDraft}
+                    onTtlChange={setTtlDraft}
+                    onRefreshValue={() => {
+                      if (selectedKey && selectedInfo) {
+                        refreshKeyValue(
+                          selectedKey,
+                          selectedInfo.type,
+                          db === "" ? undefined : db,
+                        );
+                      }
+                    }}
+                    onSave={handleSave}
+                    onDelete={() => setDeleteModalOpen(true)}
+                    onTypeChange={handleNewKeyTypeChange}
+                  />
 
-                <div className="flex flex-1">
-                  {selectedInfo ? (
-                    <RedisKeyValueEditor
-                      key={`${selectedKey ?? "key"}-${selectedType}`}
-                      ref={editorRef}
-                      type={selectedType}
-                      value={selectedValue?.value}
-                    />
-                  ) : (
-                    <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
-                      Select a key to view its value.
-                    </div>
-                  )}
+                  <div className="flex min-h-0 flex-1 overflow-auto">
+                    {selectedInfo ? (
+                      <RedisKeyValueEditor
+                        key={`${selectedKey ?? "key"}-${selectedType}`}
+                        ref={editorRef}
+                        type={selectedType}
+                        value={selectedValue?.value}
+                      />
+                    ) : (
+                      <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+                        Select a key to view its value.
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <RedisKeysFooter connectionName={connectionName} />

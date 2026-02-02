@@ -5,13 +5,28 @@ import { InlineSpinner } from "@/components/feedback/InlineSpinner";
 import { Input } from "@/components/Input";
 import { useAsyncTasks } from "@/lib/async/AsyncContext";
 
-export function Topbar() {
+type TopbarProps = {
+  onMenuClick?: () => void;
+};
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const asyncTasks = useAsyncTasks();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border-dark bg-background px-6 lg:px-8">
-      <div className="flex flex-1 items-center gap-6">
-        <div className="relative w-full max-w-md">
+    <header className="flex h-16 items-center justify-between border-b border-border-dark bg-background px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-1 items-center gap-4">
+        {onMenuClick ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="p-2 lg:hidden"
+            onClick={onMenuClick}
+            aria-label="Open navigation"
+          >
+            <span className="material-symbols-outlined">menu</span>
+          </Button>
+        ) : null}
+        <div className="relative w-full max-w-[14rem] sm:max-w-md">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-slate-400">
             search
           </span>
