@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
+import { RedisConnectionUpsertRequest } from "@/lib/types";
 
 type ResourceType = "service-bus" | "redis";
 
@@ -33,6 +34,17 @@ export function NewConnectionModal({
   const [redisPassword, setRedisPassword] = useState("");
   const [redisUseTls, setRedisUseTls] = useState(false);
   const [redisDatabase, setRedisDatabase] = useState<number | "">("");
+  const [redisEnvironment, setRedisEnvironment] = useState<
+    "production" | "staging" | "development"
+  >("development");
+  const [testStatus, setTestStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [testMessage, setTestMessage] = useState("");
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [saveMessage, setSaveMessage] = useState("");
 
   const description = useMemo(() => {
     if (resourceType === "redis") {
@@ -40,6 +52,119 @@ export function NewConnectionModal({
     }
     return "Add a Service Bus connection using access keys, managed identity, or Key Vault.";
   }, [resourceType]);
+
+  const buildRedisRequest = (): RedisConnectionUpsertRequest => ({
+    name: displayName.trim(),
+    connectionString: redisUseConnectionString
+      ? redisConnectionString.trim() || null
+      : null,
+    host: redisUseConnectionString ? "" : redisHost.trim(),
+    port: redisPort,
+    password: redisUseConnectionString ? null : redisPassword.trim() || null,
+    useTls: redisUseTls,
+    database: redisDatabase === "" ? null : redisDatabase,
+    environment: redisEnvironment,
+  });
+
+  const handleTestConnection = async () => {
+    setTestStatus("loading");
+    setTestMessage("");
+    setSaveStatus("idle");
+    setSaveMessage("");
+
+    if (resourceType !== "redis") {
+      setTestStatus("error");
+      setTestMessage("Test connection is only available for Redis right now.");
+      return;
+    }
+
+    const requestBody = buildRedisRequest();
+    if (!requestBody.name) {
+      setTestStatus("error");
+      setTestMessage("Display name is required to test the connection.");
+      return;
+    }
+
+    const response = await fetch("/api/redis/connections/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      setTestStatus("error");
+      setTestMessage("Failed to reach the Redis test endpoint.");
+      return;
+    }
+
+    const data = (await response.json()) as {
+      isSuccess: boolean;
+      message?: string;
+      reasons?: string[];
+    };
+
+    if (!data.isSuccess) {
+      setTestStatus("error");
+      setTestMessage(
+        data.reasons?.[0] ?? data.message ?? "Test connection failed.",
+      );
+      return;
+    }
+
+    setTestStatus("success");
+    setTestMessage("Connection successful.");
+  };
+
+  const handleAddConnection = async () => {
+    setSaveStatus("loading");
+    setSaveMessage("");
+    setTestStatus("idle");
+    setTestMessage("");
+
+    if (!displayName.trim()) {
+      setSaveStatus("error");
+      setSaveMessage("Display name is required.");
+      return;
+    }
+
+    if (resourceType !== "redis") {
+      setSaveStatus("error");
+      setSaveMessage("Service Bus creation is not wired yet.");
+      return;
+    }
+
+    const requestBody = buildRedisRequest();
+    const response = await fetch("/api/redis/connections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      setSaveStatus("error");
+      setSaveMessage("Failed to reach the Redis connections endpoint.");
+      return;
+    }
+
+    const data = (await response.json()) as {
+      isSuccess: boolean;
+      message?: string;
+      reasons?: string[];
+    };
+
+    if (!data.isSuccess) {
+      setSaveStatus("error");
+      setSaveMessage(
+        data.reasons?.[0] ?? data.message ?? "Failed to save connection.",
+      );
+      return;
+    }
+
+    setSaveStatus("success");
+    setSaveMessage("Connection saved.");
+    window.dispatchEvent(new Event("resources:refresh"));
+    onClose();
+  };
 
   return (
     <Modal
@@ -52,11 +177,21 @@ export function NewConnectionModal({
             Cancel
           </Button>
           <div className="flex gap-3">
-            <Button variant="ghost" className="gap-2 border border-primary/30">
+            <Button
+              variant="ghost"
+              className="gap-2 border border-primary/30"
+              onClick={handleTestConnection}
+              disabled={testStatus === "loading"}
+            >
               <span className="material-symbols-outlined text-lg">bolt</span>
-              Test Connection
+              {testStatus === "loading" ? "Testing..." : "Test Connection"}
             </Button>
-            <Button>Add Connection</Button>
+            <Button
+              onClick={handleAddConnection}
+              disabled={saveStatus === "loading"}
+            >
+              {saveStatus === "loading" ? "Saving..." : "Add Connection"}
+            </Button>
           </div>
         </div>
       }
@@ -247,6 +382,25 @@ export function NewConnectionModal({
                 </label>
               </div>
             )}
+
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-slate-200">
+                Environment
+              </label>
+              <select
+                className="h-11 w-full rounded-lg border border-border-dark bg-surface-dark px-3 text-sm text-slate-200"
+                value={redisEnvironment}
+                onChange={(event) =>
+                  setRedisEnvironment(
+                    event.target.value as "production" | "staging" | "development",
+                  )
+                }
+              >
+                <option value="development">development</option>
+                <option value="staging">staging</option>
+                <option value="production">production</option>
+              </select>
+            </div>
           </div>
         )}
 
@@ -260,6 +414,32 @@ export function NewConnectionModal({
             connection string or host credentials with optional TLS.
           </p>
         </div>
+        {testStatus !== "idle" && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${
+              testStatus === "success"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                : testStatus === "error"
+                  ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                  : "border-border-dark bg-surface-dark/60 text-slate-300"
+            }`}
+          >
+            {testStatus === "loading" ? "Testing connection..." : testMessage}
+          </div>
+        )}
+        {saveStatus !== "idle" && (
+          <div
+            className={`rounded-lg border px-4 py-3 text-sm ${
+              saveStatus === "success"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                : saveStatus === "error"
+                  ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                  : "border-border-dark bg-surface-dark/60 text-slate-300"
+            }`}
+          >
+            {saveStatus === "loading" ? "Saving connection..." : saveMessage}
+          </div>
+        )}
       </div>
     </Modal>
   );

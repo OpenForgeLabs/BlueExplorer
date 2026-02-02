@@ -22,8 +22,9 @@ const toNumber = (value?: string) => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { connectionName: string } },
+  { params }: { params: Promise<{ connectionName: string }> },
 ) {
+  const { connectionName } = await params;
   const { client, useMocks } = getClient(request);
 
   if (useMocks) {
@@ -43,9 +44,7 @@ export async function GET(
     return NextResponse.json(mock);
   }
 
-  const response = await new RedisServerClient(client).getInfo(
-    params.connectionName,
-  );
+  const response = await new RedisServerClient(client).getInfo(connectionName);
 
   if (!response.isSuccess || !response.data) {
     return NextResponse.json(response as ApiResponse<RedisServerStats>);

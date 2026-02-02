@@ -30,7 +30,8 @@ public class ApiRedisConnectionProvider : IRedisConnectionProvider
                     config.UseTls,
                     config.Database,
                     false,
-                    "appsettings"))
+                    "appsettings",
+                    config.Environment ?? "development"))
                 .ToList();
 
             Result<IReadOnlyList<RedisConnectionConfig>> storedResult = _store.GetAllAsync().GetAwaiter().GetResult();
@@ -46,7 +47,8 @@ public class ApiRedisConnectionProvider : IRedisConnectionProvider
                 config.UseTls,
                 config.Database,
                 true,
-                "connections.json")));
+                "connections.json",
+                config.Environment ?? "development")));
 
             return Result.Ok((IReadOnlyList<RedisConnectionInfo>)items);
         }

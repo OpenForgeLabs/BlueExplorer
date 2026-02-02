@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RedisBaseClient } from "@/infrastructure/redis/RedisBaseClient";
 import { RedisHashesClient } from "@/infrastructure/redis/clients/RedisHashesClient";
+import { RedisKeysClient } from "@/infrastructure/redis/clients/RedisKeysClient";
 import { RedisListsClient } from "@/infrastructure/redis/clients/RedisListsClient";
 import { RedisSetsClient } from "@/infrastructure/redis/clients/RedisSetsClient";
 import { RedisStreamsClient } from "@/infrastructure/redis/clients/RedisStreamsClient";
@@ -25,8 +26,8 @@ export async function GET(
 ) {
   const { client, useMocks } = getClient(request);
   const { connectionName, key } = await params;
-  const type = (request.nextUrl.searchParams.get("type") ??
-    "unknown") as RedisKeyType;
+  const rawType = request.nextUrl.searchParams.get("type") ?? "unknown";
+  const normalizedType = rawType.toLowerCase();
   const db = request.nextUrl.searchParams.get("db");
 
   if (useMocks) {
@@ -56,7 +57,7 @@ export async function GET(
 
   let response: ApiResponse<RedisKeyValue>;
 
-  switch (type) {
+  switch (normalizedType) {
     case "string": {
       const result = await strings.getString(
         connectionName,
@@ -172,6 +173,11 @@ export async function POST(
   const dbValue = db ? Number(db) : undefined;
   const strings = new RedisStringsClient(client);
   const hashes = new RedisHashesClient(client);
+  const keysClient = new RedisKeysClient(client);
+  const lists = new RedisListsClient(client);
+  const sets = new RedisSetsClient(client);
+  const zsets = new RedisZSetsClient(client);
+  const streams = new RedisStreamsClient(client);
 
   if (body.type === "string") {
     const response = await strings.setString(
@@ -187,6 +193,129 @@ export async function POST(
   if (body.type === "hash") {
     const entries = (body.value ?? {}) as Record<string, string>;
     const response = await hashes.setHash(connectionName, key, entries, dbValue);
+    return NextResponse.json(response);
+  }
+
+  if (body.type === "list") {
+    const values = Array.isArray(body.value) ? body.value.map(String) : null;
+    if (!values) {
+      const response: ApiResponse<boolean> = {
+        isSuccess: false,
+        message: "Invalid list payload",
+        reasons: ["Expected array of strings"],
+        data: false,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+    await keysClient.deleteKey(connectionName, key, key, dbValue);
+    if (values.length === 0) {
+      return NextResponse.json({
+        isSuccess: true,
+        message: "List cleared",
+        reasons: [],
+        data: true,
+      } satisfies ApiResponse<boolean>);
+    }
+    const response = await lists.pushList(
+      connectionName,
+      key,
+      values,
+      false,
+      dbValue,
+    );
+    return NextResponse.json({
+      ...response,
+      data: response.isSuccess,
+    } satisfies ApiResponse<boolean>);
+  }
+
+  if (body.type === "set") {
+    const members = Array.isArray(body.value)
+      ? body.value.map(String)
+      : null;
+    if (!members) {
+      const response: ApiResponse<boolean> = {
+        isSuccess: false,
+        message: "Invalid set payload",
+        reasons: ["Expected array of strings"],
+        data: false,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+    await keysClient.deleteKey(connectionName, key, key, dbValue);
+    if (members.length === 0) {
+      return NextResponse.json({
+        isSuccess: true,
+        message: "Set cleared",
+        reasons: [],
+        data: true,
+      } satisfies ApiResponse<boolean>);
+    }
+    const response = await sets.addSet(connectionName, key, members, dbValue);
+    return NextResponse.json({
+      ...response,
+      data: response.isSuccess,
+    } satisfies ApiResponse<boolean>);
+  }
+
+  if (body.type === "zset") {
+    const entries = Array.isArray(body.value) ? body.value : null;
+    if (!entries) {
+      const response: ApiResponse<boolean> = {
+        isSuccess: false,
+        message: "Invalid zset payload",
+        reasons: ["Expected array of entries"],
+        data: false,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+    await keysClient.deleteKey(connectionName, key, key, dbValue);
+    if (entries.length === 0) {
+      return NextResponse.json({
+        isSuccess: true,
+        message: "ZSet cleared",
+        reasons: [],
+        data: true,
+      } satisfies ApiResponse<boolean>);
+    }
+    const response = await zsets.addZSet(
+      connectionName,
+      key,
+      entries,
+      dbValue,
+    );
+    return NextResponse.json({
+      ...response,
+      data: response.isSuccess,
+    } satisfies ApiResponse<boolean>);
+  }
+
+  if (body.type === "stream") {
+    const entries = Array.isArray(body.value) ? body.value : null;
+    if (!entries) {
+      const response: ApiResponse<boolean> = {
+        isSuccess: false,
+        message: "Invalid stream payload",
+        reasons: ["Expected array of entries"],
+        data: false,
+      };
+      return NextResponse.json(response, { status: 400 });
+    }
+    for (const entry of entries) {
+      await streams.addEntry(
+        connectionName,
+        key,
+        entry.values ?? {},
+        entry.id && String(entry.id).trim() ? entry.id : null,
+        dbValue,
+      );
+    }
+    const response: ApiResponse<boolean> = {
+      isSuccess: true,
+      message: "Stream updated",
+      reasons: [],
+      data: true,
+    };
     return NextResponse.json(response);
   }
 

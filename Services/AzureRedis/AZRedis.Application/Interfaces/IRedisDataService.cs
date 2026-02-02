@@ -102,4 +102,9 @@ public interface IRedisDataService
         string? id,
         int? database,
         CancellationToken cancellationToken);
+
+    Task<Result<long>> GetDatabaseSizeAsync(
+        RedisConnection connection,
+        int? database,
+        CancellationToken cancellationToken);
 }

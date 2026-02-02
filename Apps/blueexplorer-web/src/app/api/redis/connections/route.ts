@@ -7,7 +7,7 @@ import {
   RedisConnectionUpsertRequest,
 } from "@/lib/types";
 
-const DEFAULT_BASE_URL = "http://localhost:5060";
+const DEFAULT_BASE_URL = "http://localhost:5095";
 
 const getClient = (request: NextRequest) => {
   const useMocks =
@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
           database: 0,
           isEditable: true,
           source: "local",
+          environment: "production",
         },
         {
           name: "stg-session-cache",
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
           database: 1,
           isEditable: true,
           source: "local",
+          environment: "staging",
         },
       ],
     };

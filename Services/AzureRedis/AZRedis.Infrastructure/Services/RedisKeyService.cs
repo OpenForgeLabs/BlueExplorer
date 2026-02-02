@@ -43,6 +43,48 @@ public class RedisKeyService : IRedisKeyService
         }
     }
 
+    public async Task<Result<RedisKeyScanResultWithInfo>> ScanKeysWithInfoAsync(
+        RedisConnection connection,
+        string? pattern,
+        int pageSize,
+        long cursor,
+        int? database,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            IDatabase db = await GetDatabaseAsync(connection, database);
+            int page = pageSize <= 0 ? 100 : pageSize;
+            RedisResult result = await db.ExecuteAsync(
+                "SCAN",
+                cursor.ToString(),
+                "MATCH",
+                pattern ?? "*",
+                "COUNT",
+                page.ToString());
+
+            var inner = (RedisResult[])result!;
+            long nextCursor = long.Parse((string)inner[0]!);
+            RedisResult[] keys = (RedisResult[])inner[1]!;
+            List<string> keyList = keys.Select(x => (string)x!).ToList();
+
+            List<Task<RedisKeyInfo>> infoTasks = keyList.Select(async key =>
+            {
+                RedisType type = await db.KeyTypeAsync(key);
+                TimeSpan? ttl = await db.KeyTimeToLiveAsync(key);
+                long? ttlSeconds = ttl.HasValue ? (long)ttl.Value.TotalSeconds : null;
+                return new RedisKeyInfo(key, type.ToString(), ttlSeconds);
+            }).ToList();
+
+            RedisKeyInfo[] info = await Task.WhenAll(infoTasks);
+            return Result.Ok(new RedisKeyScanResultWithInfo(info, nextCursor));
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail(new HandledFail("Failed to scan keys with info.", new[] { ex.Message }));
+        }
+    }
+
     public async Task<Result<RedisKeyInfo>> GetKeyInfoAsync(
         RedisConnection connection,
         string key,

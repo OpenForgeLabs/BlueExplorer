@@ -5,4 +5,5 @@ public sealed record RedisConnectionInfo(
     bool UseTls,
     int? Database,
     bool IsEditable,
-    string Source);
+    string Source,
+    string? Environment);

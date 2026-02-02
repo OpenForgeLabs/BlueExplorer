@@ -13,8 +13,10 @@ public static class AZRedisEndpointExtensions
         Connections.UpdateConnectionEndpoint.Map(group);
         Connections.DeleteConnectionEndpoint.Map(group);
         Connections.GetConnectionHealthEndpoint.Map(group);
+        Connections.TestConnectionEndpoint.Map(group);
 
         Keys.ScanKeysEndpoint.Map(group);
+        Keys.ScanKeysWithInfoEndpoint.Map(group);
         Keys.GetKeyInfoEndpoint.Map(group);
         Keys.DeleteKeyEndpoint.Map(group);
         Keys.RenameKeyEndpoint.Map(group);
@@ -43,6 +45,7 @@ public static class AZRedisEndpointExtensions
         Streams.AddStreamEntryEndpoint.Map(group);
 
         Server.GetServerInfoEndpoint.Map(group);
+        Server.GetDatabaseSizeEndpoint.Map(group);
         Server.GetClusterInfoEndpoint.Map(group);
         Server.GetClusterNodesEndpoint.Map(group);
         Server.GetClusterSlotsEndpoint.Map(group);

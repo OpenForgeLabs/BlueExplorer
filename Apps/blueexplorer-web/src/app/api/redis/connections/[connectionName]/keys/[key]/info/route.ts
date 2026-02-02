@@ -5,6 +5,17 @@ import { ApiResponse, RedisKeyInfo } from "@/lib/types";
 
 const DEFAULT_BASE_URL = "http://localhost:5060";
 
+const normalizeKeyType = (rawType: string | null | undefined) => {
+  const value = (rawType ?? "").toLowerCase();
+  if (value === "string") return "string";
+  if (value === "hash") return "hash";
+  if (value === "list") return "list";
+  if (value === "set") return "set";
+  if (value === "sortedset" || value === "zset") return "zset";
+  if (value === "stream") return "stream";
+  return "unknown";
+};
+
 const getClient = (request: NextRequest) => {
   const useMocks =
     request.nextUrl.searchParams.get("mock") === "true" ||
@@ -41,5 +52,14 @@ export async function GET(
     key,
     db ? Number(db) : undefined,
   );
-  return NextResponse.json(response);
+  if (!response.isSuccess || !response.data) {
+    return NextResponse.json(response);
+  }
+  return NextResponse.json({
+    ...response,
+    data: {
+      ...response.data,
+      type: normalizeKeyType(response.data.type),
+    },
+  });
 }

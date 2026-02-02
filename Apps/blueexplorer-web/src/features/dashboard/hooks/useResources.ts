@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAsyncAction } from "@/lib/async/useAsyncAction";
 import { ResourceSummary, ResourceType } from "@/lib/types";
 import { fetchAllResources } from "@/features/dashboard/services/resourcesService";
@@ -9,16 +9,20 @@ type ResourcesState = {
 };
 
 export function useResources(type: ResourceType) {
-  const [state, setState] = useState<ResourcesState>({ data: [] });
-
   const [allResources, setAllResources] = useState<ResourceSummary[]>([]);
+  const [state, setState] = useState<ResourcesState>({ data: [] });
   const { run, isLoading, error } = useAsyncAction(fetchAllResources, {
     label: "Refreshing resources",
   });
+  const runRef = useRef(run);
 
-  const refresh = async () => {
+  useEffect(() => {
+    runRef.current = run;
+  }, [run]);
+
+  const refresh = useCallback(async () => {
     try {
-      const response = await run();
+      const response = await runRef.current();
 
       if (!response.isSuccess) {
         setState({
@@ -39,30 +43,29 @@ export function useResources(type: ResourceType) {
         error: "Unable to load resources",
       });
     }
-  };
-
-  useEffect(() => {
-    refresh();
   }, []);
 
   useEffect(() => {
-    if (!allResources.length) {
-      return;
-    }
+    void refresh();
+  }, []);
 
+  useEffect(() => {
+    const handler = () => {
+      void refresh();
+    };
+    window.addEventListener("resources:refresh", handler);
+    return () => window.removeEventListener("resources:refresh", handler);
+  }, [refresh]);
+
+  const filteredResources = useMemo(() => {
     if (type === "all") {
-      setState((previous) => ({ ...previous, data: allResources }));
-      return;
+      return allResources;
     }
-
-    setState((previous) => ({
-      ...previous,
-      data: allResources.filter((resource) => resource.type === type),
-    }));
-  }, [type, allResources]);
+    return allResources.filter((resource) => resource.type === type);
+  }, [allResources, type]);
 
   return {
-    ...state,
+    data: filteredResources,
     allResources,
     isLoading,
     error: state.error ?? error,

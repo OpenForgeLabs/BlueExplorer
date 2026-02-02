@@ -37,15 +37,13 @@ public class RedisDataService : IRedisDataService
         {
             IDatabase db = await GetDatabaseAsync(connection, database);
             
-            TimeSpan? expiration = expiry ?? TimeSpan.Zero;
-
-            // This parameter is to preserve or not an existent ttl
+            // Preserve existing TTL when no expiry is provided.
             bool keepTtl = !expiry.HasValue;
 
             bool result = await db.StringSetAsync(
                 key,
                 value,
-                expiry: expiration,
+                expiry: expiry,
                 keepTtl: keepTtl,
                 flags: CommandFlags.None
             );
@@ -338,6 +336,24 @@ public class RedisDataService : IRedisDataService
         catch (Exception ex)
         {
             return Result.Fail(new HandledFail("Failed to add stream entry.", new[] { ex.Message }));
+        }
+    }
+
+    public async Task<Result<long>> GetDatabaseSizeAsync(
+        RedisConnection connection,
+        int? database,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            
+            IDatabase db = await GetDatabaseAsync(connection, database);
+            long size = (long)db.Execute("DBSIZE");
+            return Result.Ok(size);
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail(new HandledFail("Failed to get database size.", new[] { ex.Message }));
         }
     }
 

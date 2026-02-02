@@ -2,39 +2,18 @@ import { RedisResourceCard } from "@/features/dashboard/components/RedisResource
 import { RedisResourceListCard } from "@/features/dashboard/components/RedisResourceListCard";
 import { ServiceBusResourceCard } from "@/features/dashboard/components/ServiceBusResourceCard";
 import { ServiceBusResourceListCard } from "@/features/dashboard/components/ServiceBusResourceListCard";
-import { RedisResourceSummary, ResourceSummary, ServiceBusResourceSummary } from "@/lib/types";
-
-const GRID_CARD_MAP: Record<
-  ResourceSummary["type"],
-  (resource: ResourceSummary) => JSX.Element
-> = {
-  "service-bus": (resource) => (
-    <ServiceBusResourceCard resource={resource as ServiceBusResourceSummary} />
-  ),
-  redis: (resource) => (
-    <RedisResourceCard resource={resource as RedisResourceSummary} />
-  ),
-};
-
-const LIST_CARD_MAP: Record<
-  ResourceSummary["type"],
-  (resource: ResourceSummary) => JSX.Element
-> = {
-  "service-bus": (resource) => (
-    <ServiceBusResourceListCard
-      resource={resource as ServiceBusResourceSummary}
-    />
-  ),
-  redis: (resource) => (
-    <RedisResourceListCard resource={resource as RedisResourceSummary} />
-  ),
-};
+import {
+  RedisResourceSummary,
+  ResourceSummary,
+  ServiceBusResourceSummary,
+} from "@/lib/types";
 
 type ResourceGridProps = {
   resources: ResourceSummary[];
   isLoading: boolean;
   error?: string;
   view?: "grid" | "list";
+  onDeleteResource?: (resource: ResourceSummary) => Promise<void>;
 };
 
 export function ResourceGrid({
@@ -42,6 +21,7 @@ export function ResourceGrid({
   isLoading,
   error,
   view = "grid",
+  onDeleteResource,
 }: ResourceGridProps) {
   if (isLoading) {
     return (
@@ -71,12 +51,47 @@ export function ResourceGrid({
     view === "list"
       ? "grid grid-cols-1 gap-4"
       : "grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3";
-  const cardMap = view === "list" ? LIST_CARD_MAP : GRID_CARD_MAP;
+  const renderCard = (resource: ResourceSummary) => {
+    if (resource.type === "service-bus") {
+      return view === "list" ? (
+        <ServiceBusResourceListCard
+          resource={resource as ServiceBusResourceSummary}
+          onDelete={onDeleteResource as
+            | ((resource: ServiceBusResourceSummary) => Promise<void>)
+            | undefined}
+        />
+      ) : (
+        <ServiceBusResourceCard
+          resource={resource as ServiceBusResourceSummary}
+          onDelete={onDeleteResource as
+            | ((resource: ServiceBusResourceSummary) => Promise<void>)
+            | undefined}
+        />
+      );
+    }
+
+    const redis = resource as RedisResourceSummary;
+    return view === "list" ? (
+      <RedisResourceListCard
+        resource={redis}
+        onDelete={onDeleteResource as
+          | ((resource: RedisResourceSummary) => Promise<void>)
+          | undefined}
+      />
+    ) : (
+      <RedisResourceCard
+        resource={redis}
+        onDelete={onDeleteResource as
+          | ((resource: RedisResourceSummary) => Promise<void>)
+          | undefined}
+      />
+    );
+  };
 
   return (
     <div className={listClassName}>
       {resources.map((resource) => (
-        <div key={resource.id}>{cardMap[resource.type](resource)}</div>
+        <div key={resource.id}>{renderCard(resource)}</div>
       ))}
     </div>
   );

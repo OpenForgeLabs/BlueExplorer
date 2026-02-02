@@ -58,6 +58,7 @@ export type RedisConnectionUpsertRequest = {
   password?: string | null;
   useTls: boolean;
   database?: number | null;
+  environment?: "production" | "staging" | "development";
 };
 
 export type RedisConnectionInfo = {
@@ -66,10 +67,16 @@ export type RedisConnectionInfo = {
   database?: number | null;
   isEditable: boolean;
   source: string;
+  environment?: "production" | "staging" | "development";
 };
 
 export type RedisKeyScanResult = {
   keys: string[];
+  cursor: number;
+};
+
+export type RedisKeyScanResultWithInfo = {
+  keys: RedisKeyInfo[];
   cursor: number;
 };
 

@@ -35,7 +35,8 @@ public static class GetConnectionEndpoint
                 Port = config.Port,
                 Password = config.Password,
                 UseTls = config.UseTls,
-                Database = config.Database
+                Database = config.Database,
+                Environment = config.Environment ?? "development"
             });
         }
 
@@ -58,7 +59,8 @@ public static class GetConnectionEndpoint
             Port = fromSettings.Port,
             Password = null,
             UseTls = fromSettings.UseTls,
-            Database = fromSettings.Database
+            Database = fromSettings.Database,
+            Environment = fromSettings.Environment ?? "development"
         });
     }
 }

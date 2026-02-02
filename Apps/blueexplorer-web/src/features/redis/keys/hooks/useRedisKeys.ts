@@ -1,6 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAsyncAction } from "@/lib/async/useAsyncAction";
-import { RedisKeyInfo, RedisKeyScanResult, RedisKeyType, RedisKeyValue } from "@/lib/types";
+import {
+  ApiResponse,
+  RedisKeyInfo,
+  RedisKeyScanResult,
+  RedisKeyScanResultWithInfo,
+  RedisKeyType,
+  RedisKeyValue,
+} from "@/lib/types";
 import { fetchRedisKeys, RedisKeysQuery } from "@/features/redis/keys/services/redisKeysService";
 import { fetchRedisKeyInfo } from "@/features/redis/keys/services/redisKeyInfoService";
 import { fetchRedisKeyValue } from "@/features/redis/keys/services/redisKeyValueService";
@@ -18,77 +25,165 @@ export function useRedisKeys(connectionName: string) {
     pageSize: 100,
     cursor: 0,
   });
+  const paramsRef = useRef(params);
   const [cursorHistory, setCursorHistory] = useState<number[]>([]);
-  const [keyInfoMap, setKeyInfoMap] = useState<Record<string, RedisKeyInfo>>({});
+  const [keyInfoMap, setKeyInfoMap] = useState<Record<string, RedisKeyInfo>>(
+    {},
+  );
+  const keyInfoMapRef = useRef(keyInfoMap);
+  useEffect(() => {
+    paramsRef.current = params;
+  }, [params]);
+  useEffect(() => {
+    keyInfoMapRef.current = keyInfoMap;
+  }, [keyInfoMap]);
   const [valueMap, setValueMap] = useState<Record<string, RedisKeyValue>>({});
+  const valueMapRef = useRef(valueMap);
+  useEffect(() => {
+    valueMapRef.current = valueMap;
+  }, [valueMap]);
 
   const { run, isLoading, error } = useAsyncAction(fetchRedisKeys, {
     label: "Loading Redis keys",
   });
 
-  const loadKeys = async (
-    next?: Partial<Omit<RedisKeysQuery, "connectionName">>,
-    resetHistory = false,
-  ) => {
-    const merged = { ...params, ...next };
-    setParams(merged);
-    if (resetHistory) {
-      setCursorHistory([]);
-    }
-    try {
-      const response = await run({ connectionName, ...merged });
-      if (!response.isSuccess) {
-        setState({
-          data: response.data ?? DEFAULT_RESULT,
-          error: response.message || "Unable to load keys",
-        });
-        return;
+  const loadKeys = useCallback(
+    async (
+      next?: Partial<Omit<RedisKeysQuery, "connectionName">>,
+      resetHistory = false,
+    ) => {
+      const merged = { ...paramsRef.current, ...next };
+      setParams(merged);
+      if (resetHistory) {
+        setCursorHistory([]);
       }
-      setState({ data: response.data ?? DEFAULT_RESULT, error: undefined });
-    } catch {
-      setState({ data: DEFAULT_RESULT, error: "Unable to load keys" });
-    }
-  };
+      try {
+        const response = await run({ connectionName, ...merged }) as ApiResponse<RedisKeyScanResultWithInfo>;
+        if (!response.isSuccess) {
+          setState({
+            data: DEFAULT_RESULT,
+            error: response.message || "Unable to load keys",
+          });
+          return;
+        }
+        const enriched = response.data ?? { keys: [], cursor: 0 };
+        setKeyInfoMap((previous) => {
+          const nextMap = { ...previous };
+          enriched.keys.forEach((info) => {
+            nextMap[info.key] = info;
+          });
+          return nextMap;
+        });
+        setState({
+          data: {
+            keys: enriched.keys.map((info) => info.key),
+            cursor: enriched.cursor,
+          },
+          error: undefined,
+        });
+      } catch {
+        setState({ data: DEFAULT_RESULT, error: "Unable to load keys" });
+      }
+    },
+    [connectionName, run],
+  );
+
+  const loadKeysRef = useRef(loadKeys);
+  useEffect(() => {
+    loadKeysRef.current = loadKeys;
+  }, [loadKeys]);
 
   useEffect(() => {
-    loadKeys(undefined, true);
+    const timeout = setTimeout(() => {
+      void loadKeysRef.current(undefined, true);
+    }, 0);
+    return () => clearTimeout(timeout);
   }, [connectionName]);
 
-  const loadKeyInfos = async (keys: string[], db?: number) => {
-    const missingKeys = keys.filter((key) => !keyInfoMap[key]);
-    if (!missingKeys.length) {
-      return;
-    }
-    const results = await Promise.all(
-      missingKeys.map((key) => fetchRedisKeyInfo(connectionName, key, db)),
-    );
-    setKeyInfoMap((previous) => {
-      const nextMap = { ...previous };
-      results.forEach((result, index) => {
-        if (result.isSuccess && result.data) {
-          nextMap[missingKeys[index]] = result.data;
-        }
+  const loadKeyInfos = useCallback(
+    async (keys: string[], db?: number) => {
+      const missingKeys = keys.filter(
+        (key) => !keyInfoMapRef.current[key],
+      );
+      if (!missingKeys.length) {
+        return;
+      }
+      const results = await Promise.all(
+        missingKeys.map((key) => fetchRedisKeyInfo(connectionName, key, db)),
+      );
+      setKeyInfoMap((previous) => {
+        const nextMap = { ...previous };
+        results.forEach((result, index) => {
+          if (result.isSuccess && result.data) {
+            nextMap[missingKeys[index]] = result.data;
+          }
+        });
+        return nextMap;
       });
-      return nextMap;
-    });
-  };
+    },
+    [connectionName],
+  );
 
   useEffect(() => {
     if (!state.data.keys.length) {
       return;
     }
-    loadKeyInfos(state.data.keys, params.db);
-  }, [state.data.keys, params.db]);
+    const timeout = setTimeout(() => {
+      void loadKeyInfos(state.data.keys, params.db);
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [loadKeyInfos, params.db, state.data.keys]);
 
-  const loadKeyValue = async (key: string, type: RedisKeyType, db?: number) => {
-    if (valueMap[key] && valueMap[key].type === type) {
-      return;
-    }
-    const response = await fetchRedisKeyValue(connectionName, key, type, db);
-    if (response.isSuccess && response.data) {
-      setValueMap((previous) => ({ ...previous, [key]: response.data }));
-    }
-  };
+  const loadKeyValue = useCallback(
+    async (key: string, type: RedisKeyType, db?: number, force = false) => {
+      if (
+        !force &&
+        valueMapRef.current[key] &&
+        valueMapRef.current[key].type === type
+      ) {
+        return;
+      }
+      const response = await fetchRedisKeyValue(connectionName, key, type, db);
+      if (response.isSuccess && response.data) {
+        setValueMap((previous) => ({ ...previous, [key]: response.data }));
+      }
+    },
+    [connectionName],
+  );
+
+  const refreshKeyValue = useCallback(
+    async (key: string, type: RedisKeyType, db?: number) => {
+      await loadKeyValue(key, type, db, true);
+    },
+    [loadKeyValue],
+  );
+
+  const refreshKeyInfo = useCallback(
+    async (key: string, db?: number) => {
+      const result = await fetchRedisKeyInfo(connectionName, key, db);
+      if (result.isSuccess && result.data) {
+        setKeyInfoMap((previous) => ({
+          ...previous,
+          [key]: result.data,
+        }));
+        return result.data;
+      }
+      return undefined;
+    },
+    [connectionName],
+  );
+
+  const refreshKeyData = useCallback(
+    async (key: string, db?: number) => {
+      const info = await refreshKeyInfo(key, db);
+      const nextType = info?.type;
+      if (!nextType) {
+        return;
+      }
+      await loadKeyValue(key, nextType, db, true);
+    },
+    [loadKeyValue, refreshKeyInfo],
+  );
 
   const nextPage = async () => {
     if (!state.data.cursor) {
@@ -117,6 +212,9 @@ export function useRedisKeys(connectionName: string) {
     params,
     loadKeys,
     loadKeyValue,
+    refreshKeyValue,
+    refreshKeyInfo,
+    refreshKeyData,
     keyInfoMap,
     valueMap,
     nextPage,

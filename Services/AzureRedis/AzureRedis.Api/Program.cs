@@ -1,4 +1,3 @@
-
 using AZRedis.Application.Configuration;
 using AZRedis.Application.Interfaces;
 using AZRedis.Application.Services;
@@ -17,6 +16,7 @@ builder.Services.AddSingleton<IRedisConnectionProvider, ApiRedisConnectionProvid
 builder.Services.AddSingleton<IRedisKeyService, RedisKeyService>();
 builder.Services.AddSingleton<IRedisDataService, RedisDataService>();
 builder.Services.AddSingleton<IRedisServerService, RedisServerService>();
+builder.Services.AddSingleton<IRedisConnectionTester, RedisConnectionTester>();
 
 var app = builder.Build();
 

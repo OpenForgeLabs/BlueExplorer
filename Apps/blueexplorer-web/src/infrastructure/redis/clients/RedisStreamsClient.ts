@@ -24,4 +24,19 @@ export class RedisStreamsClient {
       `/${connectionName}/streams/${encodeURIComponent(key)}?${query}`,
     );
   }
+
+  addEntry(
+    connectionName: string,
+    key: string,
+    values: Record<string, string>,
+    id?: string | null,
+    db?: number,
+  ): Promise<ApiResponse<string>> {
+    const query =
+      db !== undefined && db !== null ? `?db=${db.toString()}` : "";
+    return this.client.post<string, { values: Record<string, string>; id?: string | null }>(
+      `/${connectionName}/streams/${encodeURIComponent(key)}${query}`,
+      { values, id },
+    );
+  }
 }

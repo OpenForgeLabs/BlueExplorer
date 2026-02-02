@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAsyncAction } from "@/lib/async/useAsyncAction";
 import { RedisServerStats } from "@/lib/types";
 import { fetchRedisStats } from "@/features/redis/overview/services/redisOverviewService";
@@ -14,7 +14,7 @@ export function useRedisOverview(connectionName: string) {
     label: "Loading Redis stats",
   });
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     try {
       const response = await run(connectionName);
       if (!response.isSuccess) {
@@ -28,10 +28,18 @@ export function useRedisOverview(connectionName: string) {
     } catch {
       setState({ data: {}, error: "Unable to load stats" });
     }
-  };
+  }, [connectionName, run]);
+
+  const refreshRef = useRef(refresh);
+  useEffect(() => {
+    refreshRef.current = refresh;
+  }, [refresh]);
 
   useEffect(() => {
-    refresh();
+    const timeout = setTimeout(() => {
+      void refreshRef.current();
+    }, 0);
+    return () => clearTimeout(timeout);
   }, [connectionName]);
 
   return { data: state.data, error: state.error ?? error, isLoading, refresh };

@@ -19,8 +19,9 @@ const getClient = (request: NextRequest) => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { connectionName: string } },
+  { params }: { params: Promise<{ connectionName: string }> },
 ) {
+  const { connectionName } = await params;
   const { client, useMocks } = getClient(request);
 
   if (useMocks) {
@@ -29,7 +30,7 @@ export async function GET(
       message: "",
       reasons: [],
       data: {
-        name: params.connectionName,
+        name: connectionName,
         connectionString: "",
         host: "localhost",
         port: 6379,
@@ -41,16 +42,16 @@ export async function GET(
     return NextResponse.json(mock);
   }
 
-  const response = await new RedisConnectionsClient(client).getConnection(
-    params.connectionName,
-  );
+  const response =
+    await new RedisConnectionsClient(client).getConnection(connectionName);
   return NextResponse.json(response);
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { connectionName: string } },
+  { params }: { params: Promise<{ connectionName: string }> },
 ) {
+  const { connectionName } = await params;
   const { client, useMocks } = getClient(request);
   const body = (await request.json()) as RedisConnectionUpsertRequest;
 
@@ -65,7 +66,7 @@ export async function PUT(
   }
 
   const response = await new RedisConnectionsClient(client).updateConnection(
-    params.connectionName,
+    connectionName,
     body,
   );
   return NextResponse.json(response);
@@ -73,8 +74,9 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { connectionName: string } },
+  { params }: { params: Promise<{ connectionName: string }> },
 ) {
+  const { connectionName } = await params;
   const { client, useMocks } = getClient(request);
 
   if (useMocks) {
@@ -88,7 +90,7 @@ export async function DELETE(
   }
 
   const response = await new RedisConnectionsClient(client).deleteConnection(
-    params.connectionName,
+    connectionName,
   );
   return NextResponse.json(response);
 }

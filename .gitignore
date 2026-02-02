@@ -99,3 +99,4 @@ pnpm-debug.log*
 *.bak
 *.orig
 *.tmp
+redis-connections.json

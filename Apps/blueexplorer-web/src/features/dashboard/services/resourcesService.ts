@@ -32,3 +32,26 @@ export async function fetchAllResources(): Promise<ApiResponse<ResourceSummary[]
     data: [...payload.data.serviceBus, ...payload.data.redis],
   };
 }
+
+export async function deleteResource(
+  type: ResourceSummary["type"],
+  name: string,
+): Promise<ApiResponse<void>> {
+  const response = await fetch(
+    `/api/resources/${type}/${encodeURIComponent(name)}`,
+    {
+      method: "DELETE",
+    },
+  );
+
+  if (!response.ok) {
+    return {
+      isSuccess: false,
+      message: "Failed to delete resource",
+      reasons: [response.statusText],
+      data: undefined as void,
+    };
+  }
+
+  return (await response.json()) as ApiResponse<void>;
+}

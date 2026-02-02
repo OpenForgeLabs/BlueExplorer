@@ -21,4 +21,32 @@ export class RedisZSetsClient {
       `/${connectionName}/zsets/${encodeURIComponent(key)}?${query}`,
     );
   }
+
+  addZSet(
+    connectionName: string,
+    key: string,
+    entries: RedisZSetEntry[],
+    db?: number,
+  ): Promise<ApiResponse<number>> {
+    const query =
+      db !== undefined && db !== null ? `?db=${db.toString()}` : "";
+    return this.client.post<number, { entries: RedisZSetEntry[] }>(
+      `/${connectionName}/zsets/${encodeURIComponent(key)}/add${query}`,
+      { entries },
+    );
+  }
+
+  removeZSet(
+    connectionName: string,
+    key: string,
+    members: string[],
+    db?: number,
+  ): Promise<ApiResponse<number>> {
+    const query =
+      db !== undefined && db !== null ? `?db=${db.toString()}` : "";
+    return this.client.post<number, { members: string[] }>(
+      `/${connectionName}/zsets/${encodeURIComponent(key)}/remove${query}`,
+      { members },
+    );
+  }
 }

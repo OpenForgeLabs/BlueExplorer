@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { InlineSpinner } from "@/components/feedback/InlineSpinner";
 import { AsyncGate } from "@/components/feedback/AsyncGate";
 import { ResourceGrid } from "@/features/dashboard/components/ResourceGrid";
 import { fetchResourceHealth } from "@/features/dashboard/services/healthService";
 import { useResources } from "@/features/dashboard/hooks/useResources";
-import { ResourceType } from "@/lib/types";
+import { deleteResource } from "@/features/dashboard/services/resourcesService";
+import { ResourceStatus, ResourceSummary } from "@/lib/types";
 import { useSearchParams } from "next/navigation";
 
 export function DashboardScreen() {
@@ -36,12 +37,12 @@ export function DashboardScreen() {
       }
       return {
         ...resource,
-        status: health ? "connected" : "offline",
+        status: (health ? "connected" : "offline") as ResourceStatus,
       };
     });
   }, [data, healthStatuses]);
 
-  const refreshHealth = async () => {
+  const refreshHealth = useCallback(async () => {
     if (!allResources.length) {
       return;
     }
@@ -55,21 +56,44 @@ export function DashboardScreen() {
       return;
     }
     setHealthStatuses(response.data.statuses ?? {});
-  };
+  }, [allResources]);
+
+  const handleDeleteResource = useCallback(
+    async (resource: ResourceSummary) => {
+      const response = await deleteResource(resource.type, resource.name);
+      if (!response.isSuccess) {
+        throw new Error(response.message || "Failed to delete resource.");
+      }
+      await refresh();
+    },
+    [refresh],
+  );
 
   useEffect(() => {
     if (!healthAutoRefresh) {
       return;
     }
 
-    refreshHealth();
+    const timeout = setTimeout(() => {
+      void refreshHealth();
+    }, 0);
 
     const interval = setInterval(() => {
-      refreshHealth();
+      void refreshHealth();
     }, Math.max(5, healthInterval) * 1000);
 
-    return () => clearInterval(interval);
-  }, [healthAutoRefresh, healthInterval, allResources]);
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [healthAutoRefresh, healthInterval, refreshHealth]);
+
+  useEffect(() => {
+    if (!allResources.length) {
+      return;
+    }
+    void refreshHealth();
+  }, [allResources, refreshHealth]);
 
   const statusSummary = useMemo(() => {
     return normalizedResources.reduce(
@@ -207,6 +231,7 @@ export function DashboardScreen() {
           isLoading={false}
           error={undefined}
           view={viewMode}
+          onDeleteResource={handleDeleteResource}
         />
       </AsyncGate>
     </div>

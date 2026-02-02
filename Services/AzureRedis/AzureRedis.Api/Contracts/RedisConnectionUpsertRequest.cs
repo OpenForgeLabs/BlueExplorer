@@ -11,6 +11,7 @@ public class RedisConnectionUpsertRequest
     public string? Password { get; set; }
     public bool UseTls { get; set; }
     public int? Database { get; set; }
+    public string? Environment { get; set; } = "development";
 
     public RedisConnectionConfig ToConfig()
     {
@@ -22,7 +23,8 @@ public class RedisConnectionUpsertRequest
             Port = Port,
             Password = Password,
             UseTls = UseTls,
-            Database = Database
+            Database = Database,
+            Environment = Environment
         };
     }
 }

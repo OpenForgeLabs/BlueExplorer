@@ -4,7 +4,7 @@ using StackExchange.Redis;
 
 namespace AZRedis.Infrastructure;
 
-internal sealed class RedisConnectionManager
+public sealed class RedisConnectionManager
 {
     private readonly ConcurrentDictionary<string, Lazy<Task<ConnectionMultiplexer>>> _connections = new();
 

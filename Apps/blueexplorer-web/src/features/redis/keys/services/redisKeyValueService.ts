@@ -62,3 +62,121 @@ export async function updateRedisKeyValue(
 
   return (await response.json()) as ApiResponse<boolean>;
 }
+
+export async function deleteRedisKey(
+  connectionName: string,
+  key: string,
+  confirmName?: string,
+  db?: number,
+): Promise<ApiResponse<boolean>> {
+  const params = new URLSearchParams();
+  if (db !== undefined && db !== null) params.set("db", db.toString());
+  if (confirmName) params.set("confirmName", confirmName);
+  const query = params.toString();
+  const response = await fetch(
+    `/api/redis/connections/${connectionName}/keys/${encodeURIComponent(
+      key,
+    )}${query ? `?${query}` : ""}`,
+    { method: "DELETE" },
+  );
+
+  if (!response.ok) {
+    return {
+      isSuccess: false,
+      message: "Failed to delete key",
+      reasons: [response.statusText],
+      data: false,
+    };
+  }
+
+  return (await response.json()) as ApiResponse<boolean>;
+}
+
+export async function renameRedisKey(
+  connectionName: string,
+  key: string,
+  newKey: string,
+  db?: number,
+): Promise<ApiResponse<boolean>> {
+  const params = new URLSearchParams();
+  if (db !== undefined && db !== null) params.set("db", db.toString());
+  const query = params.toString();
+  const response = await fetch(
+    `/api/redis/connections/${connectionName}/keys/${encodeURIComponent(
+      key,
+    )}/rename${query ? `?${query}` : ""}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newKey }),
+    },
+  );
+
+  if (!response.ok) {
+    return {
+      isSuccess: false,
+      message: "Failed to rename key",
+      reasons: [response.statusText],
+      data: false,
+    };
+  }
+
+  return (await response.json()) as ApiResponse<boolean>;
+}
+
+export async function expireRedisKey(
+  connectionName: string,
+  key: string,
+  ttlSeconds: number | null,
+  db?: number,
+): Promise<ApiResponse<boolean>> {
+  const params = new URLSearchParams();
+  if (db !== undefined && db !== null) params.set("db", db.toString());
+  const query = params.toString();
+  const response = await fetch(
+    `/api/redis/connections/${connectionName}/keys/${encodeURIComponent(
+      key,
+    )}/expire${query ? `?${query}` : ""}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ttlSeconds }),
+    },
+  );
+
+  if (!response.ok) {
+    return {
+      isSuccess: false,
+      message: "Failed to update TTL",
+      reasons: [response.statusText],
+      data: false,
+    };
+  }
+
+  return (await response.json()) as ApiResponse<boolean>;
+}
+
+export async function flushRedisDatabase(
+  connectionName: string,
+  db: number,
+  confirmName: string,
+): Promise<ApiResponse<number>> {
+  const params = new URLSearchParams();
+  params.set("db", db.toString());
+  params.set("confirmName", confirmName);
+  const response = await fetch(
+    `/api/redis/connections/${connectionName}/keys/flush?${params.toString()}`,
+    { method: "POST" },
+  );
+
+  if (!response.ok) {
+    return {
+      isSuccess: false,
+      message: "Failed to flush database",
+      reasons: [response.statusText],
+      data: 0,
+    };
+  }
+
+  return (await response.json()) as ApiResponse<number>;
+}

@@ -7,4 +7,8 @@ export class RedisServerClient {
   getInfo(connectionName: string): Promise<ApiResponse<RedisServerInfo>> {
     return this.client.get<RedisServerInfo>(`/${connectionName}/info`);
   }
+
+  getDatabaseSize(connectionName: string, db: number): Promise<ApiResponse<number>> {
+    return this.client.get<number>(`/${connectionName}/databases/${db}/size`);
+  }
 }

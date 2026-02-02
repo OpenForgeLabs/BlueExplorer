@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RedisBaseClient } from "@/infrastructure/redis/RedisBaseClient";
 import { RedisKeysClient } from "@/infrastructure/redis/clients/RedisKeysClient";
-import { ApiResponse, RedisKeyScanResult } from "@/lib/types";
+import { ApiResponse, RedisKeyScanResultWithInfo } from "@/lib/types";
 
 const DEFAULT_BASE_URL = "http://localhost:5060";
+
+const normalizeKeyType = (rawType: string | null | undefined) => {
+  const value = (rawType ?? "").toLowerCase();
+  if (value === "string") return "string";
+  if (value === "hash") return "hash";
+  if (value === "list") return "list";
+  if (value === "set") return "set";
+  if (value === "sortedset" || value === "zset") return "zset";
+  if (value === "stream") return "stream";
+  return "unknown";
+};
 
 const getClient = (request: NextRequest) => {
   const useMocks =
@@ -16,22 +27,23 @@ const getClient = (request: NextRequest) => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { connectionName: string } },
+  { params }: { params: Promise<{ connectionName: string }> },
 ) {
+  const { connectionName } = await params;
   const { client, useMocks } = getClient(request);
 
   if (useMocks) {
-    const mock: ApiResponse<RedisKeyScanResult> = {
+    const mock: ApiResponse<RedisKeyScanResultWithInfo> = {
       isSuccess: true,
       message: "",
       reasons: [],
       data: {
         keys: [
-          "session:8452",
-          "orders:stream",
-          "cache:product:1",
-          "cache:product:2",
-          "feature-flags",
+          { key: "session:8452", type: "hash", ttlSeconds: 342 },
+          { key: "orders:stream", type: "stream", ttlSeconds: null },
+          { key: "cache:product:1", type: "string", ttlSeconds: 120 },
+          { key: "cache:product:2", type: "string", ttlSeconds: 95 },
+          { key: "feature-flags", type: "hash", ttlSeconds: null },
         ],
         cursor: 0,
       },
@@ -44,8 +56,8 @@ export async function GET(
   const cursor = request.nextUrl.searchParams.get("cursor");
   const db = request.nextUrl.searchParams.get("db");
 
-  const response = await new RedisKeysClient(client).scanKeys(
-    params.connectionName,
+  const response = await new RedisKeysClient(client).scanKeysWithInfo(
+    connectionName,
     {
       pattern,
       pageSize: pageSize ? Number(pageSize) : undefined,
@@ -53,5 +65,18 @@ export async function GET(
       db: db ? Number(db) : undefined,
     },
   );
-  return NextResponse.json(response);
+  if (!response.isSuccess || !response.data) {
+    return NextResponse.json(response);
+  }
+
+  return NextResponse.json({
+    ...response,
+    data: {
+      ...response.data,
+      keys: response.data.keys.map((info) => ({
+        ...info,
+        type: normalizeKeyType(info.type),
+      })),
+    },
+  });
 }

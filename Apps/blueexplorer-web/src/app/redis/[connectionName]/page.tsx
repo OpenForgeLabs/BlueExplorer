@@ -1,4 +1,4 @@
-import { RedisOverviewScreen } from "@/features/redis/overview/RedisOverviewScreen";
+import { redirect } from "next/navigation";
 
 export default async function RedisOverviewPage({
   params,
@@ -6,5 +6,5 @@ export default async function RedisOverviewPage({
   params: Promise<{ connectionName: string }>;
 }) {
   const { connectionName } = await params;
-  return <RedisOverviewScreen connectionName={connectionName} />;
+  redirect(`/redis/${encodeURIComponent(connectionName)}/keys`);
 }

@@ -51,4 +51,11 @@ export class ServiceBusClient {
   async getHealth(connectionName: string): Promise<ApiResponse<boolean>> {
     return this.client.get<boolean>(`/api/connections/${connectionName}/health`);
   }
+
+  async deleteConnection(connectionName: string): Promise<ApiResponse<void>> {
+    const encoded = encodeURIComponent(connectionName);
+    return this.client.delete<void>(
+      `/api/connections/${encoded}?confirmName=${encoded}`,
+    );
+  }
 }

@@ -13,6 +13,14 @@ public interface IRedisKeyService
         int? database,
         CancellationToken cancellationToken);
 
+    Task<Result<RedisKeyScanResultWithInfo>> ScanKeysWithInfoAsync(
+        RedisConnection connection,
+        string? pattern,
+        int pageSize,
+        long cursor,
+        int? database,
+        CancellationToken cancellationToken);
+
     Task<Result<RedisKeyInfo>> GetKeyInfoAsync(
         RedisConnection connection,
         string key,

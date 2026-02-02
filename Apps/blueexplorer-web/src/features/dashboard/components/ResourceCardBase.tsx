@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Card } from "@/components/Card";
 import { ResourceSummaryBase } from "@/lib/types";
+import Link from "next/link";
 
 const STATUS_STYLES: Record<string, string> = {
   connected: "bg-emerald-500",
@@ -20,6 +20,7 @@ type ResourceCardBaseProps = {
   icon: string;
   href: string;
   children: ReactNode;
+  actions?: ReactNode;
 };
 
 export function ResourceCardBase({
@@ -27,6 +28,7 @@ export function ResourceCardBase({
   icon,
   href,
   children,
+  actions,
 }: ResourceCardBaseProps) {
   const statusClass = STATUS_STYLES[resource.status ?? ""] ?? "bg-slate-500";
   const envClass =
@@ -34,41 +36,42 @@ export function ResourceCardBase({
     "bg-slate-500/10 text-slate-300";
 
   return (
-    <Link href={href} className="block">
-      <Card className="group relative cursor-pointer">
-      <div className="mb-4 flex items-start justify-between">
-        <div className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
-          <span className="material-symbols-outlined text-[28px]">
-            {icon}
-          </span>
+    <Card className="group relative">
+        <div className="mb-4 flex items-start justify-between">
+          <div className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
+            <span className="material-symbols-outlined text-[28px]">
+              {icon}
+            </span>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            <span
+              className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-bold uppercase ${envClass}`}
+            >
+              {resource.environment ?? "environment"}
+            </span>
+            {actions}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-bold uppercase ${envClass}`}
-          >
-            {resource.environment ?? "environment"}
-          </span>
-        </div>
-      </div>
-      <h3 className="mb-1 truncate text-base font-bold text-slate-100">
-        {resource.name}
-      </h3>
-      <p className="mb-4 truncate font-mono text-xs text-slate-400">
-        {resource.endpoint}
-      </p>
-      {children}
-      <div className="flex items-center justify-between border-t border-border-dark pt-4">
-        <div className="flex items-center gap-1.5">
-          <div className={`size-2 rounded-full ${statusClass}`}></div>
-          <span className="text-xs text-slate-400">
-            {resource.status ?? "unknown"}
-          </span>
-        </div>
-        <span className="material-symbols-outlined text-slate-500">
-          chevron_right
-        </span>
-      </div>
-      </Card>
-    </Link>
+        <Link href={href} className="block cursor-pointer">
+          <h3 className="mb-1 truncate text-base font-bold text-slate-100">
+            {resource.name}
+          </h3>
+          <p className="mb-4 truncate font-mono text-xs text-slate-400">
+            {resource.endpoint}
+          </p>
+          {children}
+          <div className="flex items-center justify-between border-t border-border-dark pt-4">
+            <div className="flex items-center gap-1.5">
+              <div className={`size-2 rounded-full ${statusClass}`}></div>
+              <span className="text-xs text-slate-400">
+                {resource.status ?? "unknown"}
+              </span>
+            </div>
+            <span className="material-symbols-outlined text-slate-500">
+              chevron_right
+            </span>
+          </div>
+        </Link>
+    </Card>
   );
 }

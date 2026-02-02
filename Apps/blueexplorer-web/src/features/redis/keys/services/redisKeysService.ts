@@ -1,4 +1,4 @@
-import { ApiResponse, RedisKeyScanResult } from "@/lib/types";
+import { ApiResponse, RedisKeyScanResultWithInfo } from "@/lib/types";
 
 export type RedisKeysQuery = {
   connectionName: string;
@@ -14,7 +14,7 @@ export async function fetchRedisKeys({
   pageSize,
   cursor,
   db,
-}: RedisKeysQuery): Promise<ApiResponse<RedisKeyScanResult>> {
+}: RedisKeysQuery): Promise<ApiResponse<RedisKeyScanResultWithInfo>> {
   const params = new URLSearchParams();
   if (pattern) params.set("pattern", pattern);
   if (pageSize) params.set("pageSize", pageSize.toString());
@@ -36,5 +36,5 @@ export async function fetchRedisKeys({
     };
   }
 
-  return (await response.json()) as ApiResponse<RedisKeyScanResult>;
+  return (await response.json()) as ApiResponse<RedisKeyScanResultWithInfo>;
 }

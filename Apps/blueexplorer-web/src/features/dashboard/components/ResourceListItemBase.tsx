@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Card } from "@/components/Card";
 import { ResourceSummaryBase } from "@/lib/types";
+import Link from "next/link";
 
 const STATUS_STYLES: Record<string, string> = {
   connected: "bg-emerald-500",
@@ -20,6 +20,7 @@ type ResourceListItemBaseProps = {
   icon: string;
   href: string;
   metrics: ReactNode;
+  actions?: ReactNode;
 };
 
 export function ResourceListItemBase({
@@ -27,6 +28,7 @@ export function ResourceListItemBase({
   icon,
   href,
   metrics,
+  actions,
 }: ResourceListItemBaseProps) {
   const statusClass = STATUS_STYLES[resource.status ?? ""] ?? "bg-slate-500";
   const envClass =
@@ -34,8 +36,7 @@ export function ResourceListItemBase({
     "bg-slate-500/10 text-slate-300";
 
   return (
-    <Link href={href} className="block">
-      <Card className="grid cursor-pointer gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1.6fr)_minmax(0,0.8fr)] md:items-center">
+    <Card className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1.6fr)_minmax(0,0.8fr)] md:items-center">
       <div className="flex items-start gap-4">
         <div className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
           <span className="material-symbols-outlined text-[26px]">{icon}</span>
@@ -50,6 +51,7 @@ export function ResourceListItemBase({
             >
               {resource.environment ?? "environment"}
             </span>
+            {actions ? <div className="ml-auto">{actions}</div> : null}
           </div>
           <p className="truncate font-mono text-xs text-slate-400">
             {resource.endpoint}
@@ -57,22 +59,25 @@ export function ResourceListItemBase({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {metrics}
-      </div>
+      <Link href={href} className="block cursor-pointer">
+        <div className="grid grid-cols-2 gap-3">
+          {metrics}
+        </div>
+      </Link>
 
-      <div className="flex items-center justify-between border-t border-border-dark pt-3 md:flex-col md:items-end md:gap-3 md:border-t-0 md:pt-0">
-        <div className="flex items-center gap-1.5">
-          <div className={`size-2 rounded-full ${statusClass}`}></div>
-          <span className="text-xs text-slate-400">
-            {resource.status ?? "unknown"}
+      <Link href={href} className="block cursor-pointer">
+        <div className="flex items-center justify-between border-t border-border-dark pt-3 md:flex-col md:items-end md:gap-3 md:border-t-0 md:pt-0">
+          <div className="flex items-center gap-1.5">
+            <div className={`size-2 rounded-full ${statusClass}`}></div>
+            <span className="text-xs text-slate-400">
+              {resource.status ?? "unknown"}
+            </span>
+          </div>
+          <span className="material-symbols-outlined text-slate-500">
+            chevron_right
           </span>
         </div>
-        <span className="material-symbols-outlined text-slate-500">
-          chevron_right
-        </span>
-      </div>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 }

@@ -15,6 +15,7 @@ public class RedisConnectionConfig
     public string? Password { get; set; }
     public bool UseTls { get; set; }
     public int? Database { get; set; }
+    public string? Environment { get; set; } = "development";
 }
 
 public class RedisQuerySettings

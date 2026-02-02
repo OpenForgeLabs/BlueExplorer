@@ -12,14 +12,21 @@ export class RedisConnectionsClient {
     return this.client.get<RedisConnectionInfo[]>("/connections");
   }
 
-  getConnection(connectionName: string): Promise<ApiResponse<RedisConnectionUpsertRequest>> {
-    return this.client.get<RedisConnectionUpsertRequest>(`/connections/${connectionName}`);
+  getConnection(
+    connectionName: string,
+  ): Promise<ApiResponse<RedisConnectionUpsertRequest>> {
+    return this.client.get<RedisConnectionUpsertRequest>(
+      `/connections/${connectionName}`,
+    );
   }
 
   createConnection(
     request: RedisConnectionUpsertRequest,
   ): Promise<ApiResponse<void>> {
-    return this.client.post<void, RedisConnectionUpsertRequest>("/connections", request);
+    return this.client.post<void, RedisConnectionUpsertRequest>(
+      "/connections",
+      request,
+    );
   }
 
   updateConnection(
@@ -38,5 +45,12 @@ export class RedisConnectionsClient {
 
   getHealth(connectionName: string): Promise<ApiResponse<boolean>> {
     return this.client.get<boolean>(`/connections/${connectionName}/health`);
+  }
+
+  testConnection(request: RedisConnectionUpsertRequest): Promise<ApiResponse<boolean>> {
+    return this.client.post<boolean, RedisConnectionUpsertRequest>(
+      "/connections/test",
+      request,
+    );
   }
 }

@@ -34,7 +34,7 @@ export function Breadcrumbs() {
         const connectionName = decodeURIComponent(parts[1]);
         items.push({
           label: connectionName,
-          href: `/redis/${encodeURIComponent(connectionName)}`,
+          href: `/redis/${encodeURIComponent(connectionName)}/keys`,
         });
       }
       if (parts[2]) {
