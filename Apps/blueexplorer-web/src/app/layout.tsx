@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "../styles/globals.css";
 import { AsyncProvider } from "@/lib/async/AsyncContext";
 import { GlobalLoadingOverlay } from "@/components/feedback/GlobalLoadingOverlay";
@@ -25,7 +26,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-background text-slate-100">
         <AsyncProvider>
-          <AppShell>{children}</AppShell>
+          <Suspense fallback={null}>
+            <AppShell>{children}</AppShell>
+          </Suspense>
           <GlobalLoadingOverlay />
         </AsyncProvider>
       </body>
