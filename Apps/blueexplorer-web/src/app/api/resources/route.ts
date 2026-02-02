@@ -48,7 +48,7 @@ const enrichRedisStats = (
     ? Number(stats.instantaneous_ops_per_sec)
     : undefined;
   return {
-    opsRate: Number.isNaN(ops) ? undefined : ops,
+    opsRate: Number.isNaN(ops) || ops === undefined ? undefined : `${ops} / sec`,
     memoryUsage: memory.used_memory_human,
     keyCount: parseKeyspaceTotal(keyspace),
   };
@@ -69,7 +69,7 @@ const mapRedisConnections = async (
 
     if (client.isMocked) {
       stats = {
-        opsRate: Math.floor(200 + Math.random() * 8000),
+        opsRate: `${Math.floor(200 + Math.random() * 8000)} / sec`,
         memoryUsage: `${Math.floor(100 + Math.random() * 900)}MB`,
         keyCount: Math.floor(50 + Math.random() * 5000),
       };
