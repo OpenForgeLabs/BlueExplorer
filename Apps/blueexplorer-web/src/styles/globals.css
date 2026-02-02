@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --font-display: system-ui, -apple-system, "Segoe UI", "Roboto", sans-serif;
   --color-primary: #137fec;
   --color-background-dark: #0f172a;
   --color-surface-dark: #1e293b;

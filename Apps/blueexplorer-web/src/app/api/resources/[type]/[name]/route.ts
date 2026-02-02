@@ -9,7 +9,7 @@ const DEFAULT_REDIS_URL = "http://localhost:5095";
 const DEFAULT_SERVICEBUS_URL = "http://localhost:5048";
 
 type RouteParams = {
-  type: "redis" | "service-bus";
+  type: string;
   name: string;
 };
 
