@@ -1,16 +1,21 @@
 # BlueExplorer
 
-BlueExplorer is an Azure-first infrastructure explorer. It provides a web UI plus APIs to manage resources like Azure Service Bus and Redis.
+BlueExplorer is an Azure-first infrastructure explorer that gives developers a single, focused UI to manage operational resources. It pairs a modular web app with resource-specific APIs (Redis UI today; Service Bus API available, UI coming soon) so you can extend or run only what you need.
 
-## Docker (GHCR)
+## ✨ Highlights
 
-Images are published to GitHub Container Registry:
+- Modular resources (Redis UI today; Service Bus API, UI coming soon)
+- Local-first, developer-friendly UX
+- Docker-ready deployment
+- BFF layer to keep the UI stable
+
+## 🧱 Images (GHCR)
 
 - `ghcr.io/openforgelabs/blueexplorer-web`
 - `ghcr.io/openforgelabs/blueexplorer-servicebus`
 - `ghcr.io/openforgelabs/blueexplorer-redis`
 
-### Run with Docker
+## 🚀 Run with Docker
 
 ```bash
 docker run -p 3000:3000 \
@@ -19,7 +24,7 @@ docker run -p 3000:3000 \
   ghcr.io/openforgelabs/blueexplorer-web:latest
 ```
 
-### Example docker-compose
+### docker-compose example
 
 ```yaml
 services:
@@ -46,21 +51,31 @@ services:
       - redis-api
 ```
 
-Registry namespace is set to `openforgelabs`.
+## 🧩 Module-first Architecture
 
-## Release workflow
+BlueExplorer is structured so each infrastructure resource can be enabled or shipped independently:
 
-Publishing happens via `.github/workflows/docker.yml` on:
+- A resource API per module (Service Bus, Redis, Blob later)
+- A web UI that discovers available modules
+- BFF orchestration to keep UI contracts consistent
 
-- push to `master` (tags `latest`)
-- tags like `vX.Y.Z` (tags `vX.Y.Z`)
+## 🗺️ Roadmap (Short Term)
 
-## Branch protection checklist
+- Redis key browser UX improvements
+- Service Bus: refine the API and build the UI
+- Blob Storage module
+- Packaging without Docker (optional)
 
-Recommended settings for `master`:
+## 💰 Support BlueExplorer
 
-- Require pull request reviews (1+ approval)
-- Require status checks (CI) to pass
-- Require linear history (optional)
-- Disallow force pushes
-- Restrict direct pushes to `master`
+If BlueExplorer saves you time, please consider supporting the project:
+
+[![PayPal](https://img.shields.io/badge/Donate%20via%20PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/JuanTellezRojas)
+
+## 📦 Release Workflow
+
+Docker images are published **only on releases** via `.github/workflows/docker.yml`:
+
+- Create a GitHub Release with a `vX.Y.Z` tag
+- CI builds multi-arch images
+- A `release-manifest.json` is attached to the release
